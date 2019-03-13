@@ -1,0 +1,10 @@
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\bin\Debug\LoggerConfig.exe.config
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\obj\Debug\LoggerConfig.csprojResolveAssemblyReference.cache
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\obj\Debug\LoggerConfig.Form1.resources
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\obj\Debug\LoggerConfig.Properties.Resources.resources
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\obj\Debug\LoggerConfig.csproj.GenerateResource.Cache
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\bin\Debug\LoggerConfig.exe
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\bin\Debug\LoggerConfig.pdb
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\obj\Debug\LoggerConfig.exe
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\obj\Debug\LoggerConfig.pdb
+C:\Phytech-Yifat\Sources\BitBucket\LoggerConfig\LoggerConfig\bin\Debug\QRCoder.dll
