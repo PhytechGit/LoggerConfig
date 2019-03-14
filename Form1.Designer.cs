@@ -42,13 +42,15 @@
             this.textID = new System.Windows.Forms.TextBox();
             this.richTextBoxLgr = new System.Windows.Forms.RichTextBox();
             this.button2 = new System.Windows.Forms.Button();
+            this.richTextBox2 = new System.Windows.Forms.RichTextBox();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // richTextBox1
             // 
             this.richTextBox1.Location = new System.Drawing.Point(15, 184);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(337, 138);
+            this.richTextBox1.Size = new System.Drawing.Size(254, 138);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
             // 
@@ -59,6 +61,7 @@
             // 
             // EzrPort
             // 
+            this.EzrPort.BaudRate = 115200;
             this.EzrPort.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.EzrPort_DataReceived);
             // 
             // comboPortAtml
@@ -134,9 +137,9 @@
             // 
             // richTextBoxLgr
             // 
-            this.richTextBoxLgr.Location = new System.Drawing.Point(382, 179);
+            this.richTextBoxLgr.Location = new System.Drawing.Point(275, 184);
             this.richTextBoxLgr.Name = "richTextBoxLgr";
-            this.richTextBoxLgr.Size = new System.Drawing.Size(332, 142);
+            this.richTextBoxLgr.Size = new System.Drawing.Size(292, 142);
             this.richTextBoxLgr.TabIndex = 9;
             this.richTextBoxLgr.Text = "";
             // 
@@ -150,11 +153,30 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // richTextBox2
+            // 
+            this.richTextBox2.Location = new System.Drawing.Point(573, 184);
+            this.richTextBox2.Name = "richTextBox2";
+            this.richTextBox2.Size = new System.Drawing.Size(169, 142);
+            this.richTextBox2.TabIndex = 11;
+            this.richTextBox2.Text = "";
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Enabled = false;
+            this.progressBar1.Location = new System.Drawing.Point(15, 144);
+            this.progressBar1.Maximum = 7;
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(419, 20);
+            this.progressBar1.TabIndex = 12;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(735, 335);
+            this.ClientSize = new System.Drawing.Size(762, 335);
+            this.Controls.Add(this.progressBar1);
+            this.Controls.Add(this.richTextBox2);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.richTextBoxLgr);
             this.Controls.Add(this.textID);
@@ -189,6 +211,8 @@
         private System.Windows.Forms.TextBox textID;
         private System.Windows.Forms.RichTextBox richTextBoxLgr;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.RichTextBox richTextBox2;
+        private System.Windows.Forms.ProgressBar progressBar1;
     }
 }
 
