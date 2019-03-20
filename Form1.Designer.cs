@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.AtmelPort = new System.IO.Ports.SerialPort(this.components);
             this.EzrPort = new System.IO.Ports.SerialPort(this.components);
@@ -39,11 +40,15 @@
             this.button1 = new System.Windows.Forms.Button();
             this.openAtmelComBtn = new System.Windows.Forms.Button();
             this.openEzrComBtn = new System.Windows.Forms.Button();
-            this.textID = new System.Windows.Forms.TextBox();
             this.richTextBoxLgr = new System.Windows.Forms.RichTextBox();
             this.button2 = new System.Windows.Forms.Button();
             this.richTextBox2 = new System.Windows.Forms.RichTextBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.StageLbl = new System.Windows.Forms.Label();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -67,23 +72,23 @@
             // comboPortAtml
             // 
             this.comboPortAtml.FormattingEnabled = true;
-            this.comboPortAtml.Location = new System.Drawing.Point(120, 26);
+            this.comboPortAtml.Location = new System.Drawing.Point(111, 38);
             this.comboPortAtml.Name = "comboPortAtml";
-            this.comboPortAtml.Size = new System.Drawing.Size(130, 21);
+            this.comboPortAtml.Size = new System.Drawing.Size(103, 21);
             this.comboPortAtml.TabIndex = 1;
             // 
             // comboPortsEzr
             // 
             this.comboPortsEzr.FormattingEnabled = true;
-            this.comboPortsEzr.Location = new System.Drawing.Point(120, 64);
+            this.comboPortsEzr.Location = new System.Drawing.Point(111, 78);
             this.comboPortsEzr.Name = "comboPortsEzr";
-            this.comboPortsEzr.Size = new System.Drawing.Size(129, 21);
+            this.comboPortsEzr.Size = new System.Drawing.Size(103, 21);
             this.comboPortsEzr.TabIndex = 2;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(20, 26);
+            this.label1.Location = new System.Drawing.Point(11, 38);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(91, 13);
             this.label1.TabIndex = 3;
@@ -92,7 +97,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(20, 67);
+            this.label2.Location = new System.Drawing.Point(11, 78);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(87, 13);
             this.label2.TabIndex = 4;
@@ -100,19 +105,19 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(450, 26);
+            this.button1.Location = new System.Drawing.Point(442, 38);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(166, 34);
+            this.button1.Size = new System.Drawing.Size(189, 34);
             this.button1.TabIndex = 5;
-            this.button1.Text = "Start";
+            this.button1.Text = "Start New Logger";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // openAtmelComBtn
             // 
-            this.openAtmelComBtn.Location = new System.Drawing.Point(265, 22);
+            this.openAtmelComBtn.Location = new System.Drawing.Point(224, 38);
             this.openAtmelComBtn.Name = "openAtmelComBtn";
-            this.openAtmelComBtn.Size = new System.Drawing.Size(46, 27);
+            this.openAtmelComBtn.Size = new System.Drawing.Size(42, 21);
             this.openAtmelComBtn.TabIndex = 6;
             this.openAtmelComBtn.Text = "Open";
             this.openAtmelComBtn.UseVisualStyleBackColor = true;
@@ -120,20 +125,13 @@
             // 
             // openEzrComBtn
             // 
-            this.openEzrComBtn.Location = new System.Drawing.Point(267, 62);
+            this.openEzrComBtn.Location = new System.Drawing.Point(224, 78);
             this.openEzrComBtn.Name = "openEzrComBtn";
-            this.openEzrComBtn.Size = new System.Drawing.Size(42, 27);
+            this.openEzrComBtn.Size = new System.Drawing.Size(42, 21);
             this.openEzrComBtn.TabIndex = 7;
             this.openEzrComBtn.Text = "Open";
             this.openEzrComBtn.UseVisualStyleBackColor = true;
             this.openEzrComBtn.Click += new System.EventHandler(this.openEzrComBtn_Click);
-            // 
-            // textID
-            // 
-            this.textID.Location = new System.Drawing.Point(462, 81);
-            this.textID.Name = "textID";
-            this.textID.Size = new System.Drawing.Size(122, 20);
-            this.textID.TabIndex = 8;
             // 
             // richTextBoxLgr
             // 
@@ -145,12 +143,13 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(467, 122);
+            this.button2.Location = new System.Drawing.Point(661, 135);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(97, 32);
             this.button2.TabIndex = 10;
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Visible = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // richTextBox2
@@ -164,22 +163,57 @@
             // progressBar1
             // 
             this.progressBar1.Enabled = false;
-            this.progressBar1.Location = new System.Drawing.Point(15, 144);
-            this.progressBar1.Maximum = 7;
+            this.progressBar1.Location = new System.Drawing.Point(331, 109);
+            this.progressBar1.Maximum = 8;
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(419, 20);
             this.progressBar1.TabIndex = 12;
+            // 
+            // StageLbl
+            // 
+            this.StageLbl.AutoSize = true;
+            this.StageLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
+            this.StageLbl.Location = new System.Drawing.Point(460, 20);
+            this.StageLbl.Name = "StageLbl";
+            this.StageLbl.Size = new System.Drawing.Size(0, 16);
+            this.StageLbl.TabIndex = 14;
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.viewToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(762, 24);
+            this.menuStrip1.TabIndex = 15;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // viewToolStripMenuItem
+            // 
+            this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.showLogToolStripMenuItem});
+            this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.viewToolStripMenuItem.Text = "View";
+            // 
+            // showLogToolStripMenuItem
+            // 
+            this.showLogToolStripMenuItem.CheckOnClick = true;
+            this.showLogToolStripMenuItem.Name = "showLogToolStripMenuItem";
+            this.showLogToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.showLogToolStripMenuItem.Text = "Show Log";
+            this.showLogToolStripMenuItem.Click += new System.EventHandler(this.showLogToolStripMenuItem_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(762, 335);
+            this.ClientSize = new System.Drawing.Size(762, 175);
+            this.Controls.Add(this.StageLbl);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.richTextBox2);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.richTextBoxLgr);
-            this.Controls.Add(this.textID);
             this.Controls.Add(this.openEzrComBtn);
             this.Controls.Add(this.openAtmelComBtn);
             this.Controls.Add(this.button1);
@@ -188,9 +222,14 @@
             this.Controls.Add(this.comboPortsEzr);
             this.Controls.Add(this.comboPortAtml);
             this.Controls.Add(this.richTextBox1);
+            this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "LoggerConfig";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -208,11 +247,14 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button openAtmelComBtn;
         private System.Windows.Forms.Button openEzrComBtn;
-        private System.Windows.Forms.TextBox textID;
         private System.Windows.Forms.RichTextBox richTextBoxLgr;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.RichTextBox richTextBox2;
         private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.Label StageLbl;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showLogToolStripMenuItem;
     }
 }
 

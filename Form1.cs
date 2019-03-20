@@ -40,20 +40,21 @@ namespace LoggerConfig
 
     public enum _ModemType
     {
-        MODEM_NONE,
-        MODEM_GE,
-        MODEM_SVL,        
+        MODEM_NONE = 0,
+        MODEM_GE = 1,
+        MODEM_SVL = 2,        
     };
 
-    public enum _LoggerStatus
+    public enum _ProcessStages
     {
-        STATUS_BURN_EZR,
-        STATUS_BURN_ATMEL,
-        STATUS_BEFORE_CONNECT,
-        STATUS_FIRST_CONNECT,
-        STATUS_AFTER_CONNECT,
-        STATUS_SET_ID,
-        STATUS_END,
+        STAGE_1_BURN_EZR,
+        STAGE_2_BURN_ATMEL,
+        STAGE_3_BEFORE_CONNECT,
+        STAGE_4_FIRST_CONNECT,
+        STAGE_5_TEST_RF,
+        STAGE_6_SERVER_CONNECT,
+        STAGE_7_SET_ID,
+        STAGE_8_END,
     };
 
     public enum _TASK
@@ -70,7 +71,8 @@ namespace LoggerConfig
         bool        m_testEzr;
         private static System.Timers.Timer m_myTimer;
         byte[]      m_buffer = new byte[1000];
-        byte[] m_byteID = new byte[4] { 0, 0, 0, 0 };
+        byte[]      m_byteID = new byte[4] { 0, 0, 0, 0 };
+        string      m_sID;
         int         length;
         int         m_buferLen;
         byte        m_Param;
@@ -85,12 +87,14 @@ namespace LoggerConfig
         List<APN_Types> APNArray;
         string      m_sVer;
         string      m_sBtr;
-        int         m_nMinute;
+        int         m_nSeconds;
         byte[]      m_iccid = new byte[20];
         string      m_strICCID;
+        int         m_nEventCnt;
         _ModemType   m_nModemModel;
-        _LoggerStatus m_status;
-        _TASK m_curTask;
+        _ProcessStages m_curStage;
+        _TASK       m_curTask;
+
         public Form1()
         {
             InitializeComponent();
@@ -140,7 +144,7 @@ namespace LoggerConfig
             {
                 string line = sr.ReadLine();
                 string[] sarr = line.Split(',');
-                APNArray.Add(new APN_Types { m_mdmType = (_ModemType)Convert.ToInt16(sarr[0]), m_APN = sarr[1], m_ICCID = sarr[2] });
+                APNArray.Add(new APN_Types { m_mdmType = (_ModemType)Convert.ToInt16(sarr[0]), m_ICCID = sarr[1], m_APN = sarr[2] });
             }
         }
 
@@ -178,7 +182,8 @@ namespace LoggerConfig
                 MessageBox.Show(we.Message);
             }
 }
-private void Form1_Load(object sender, EventArgs e)
+
+        private void Form1_Load(object sender, EventArgs e)
         {
             LoadPorts();
             LoadFilesName();
@@ -217,40 +222,56 @@ private void Form1_Load(object sender, EventArgs e)
             }
         }
 
-        void Wait4Answer()
-        {
-            while (m_bDataReceived == false) ;// && (m_nMinute > 0)) ;
-            AddText(richTextBox1, "finish wait");
-        }
+        delegate void AddLineCallback(Label c, string text);
 
+        private void AddLine(Label c, string text)
+        {
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            //if (this.textID.InvokeRequired)
+            try
+            {
+                if (c.InvokeRequired)
+                {
+                    AddLineCallback d = new AddLineCallback(AddLine);
+                    this.Invoke(d, new object[] { c, text });
+                }
+                else
+                {
+                    string s = c.Text;
+                    s += "\r\n";
+                    s += text;
+                    c.Text = s;                  
+                    //c.AppendText(text);
+                    //c.AppendText("\r\n");
+                    ////c.Text += text;
+                    //c.SelectionStart = c.Text.Length;
+                    //c.ScrollToCaret();
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
 
         void Wait4Beep()
         {
-            while (((m_bConnected2Logger == false) && (m_bCnctOK == false)) && (m_nMinute > 0)) ;
+            while (((m_bConnected2Logger == false) && (m_bCnctOK == false)) && (m_nSeconds > 0)) ;
             AddText(richTextBox1, "finish wait");
             if ((m_bConnected2Logger == false) && (m_bCnctOK == false))
-            {
+            {                
                 m_bStopProcess = true;
                 return;
             }
-            m_status++;
-            m_curTask = _TASK.TASK_DO_SOMETHING;
-            /*
-            if (m_status == _LoggerStatus.STATUS_FIRST_CONNECT)
+            if (m_bCnctOK)
             {
-                Thread th1 = new Thread(new ThreadStart(TestRf));
-                th1.Start();
-                Thread th2 = new Thread(new ThreadStart(HelloSensor));
-                th2.Start();
+                AddText(richTextBox1, "wait logger will disconnect");
+                Thread.Sleep(10000);
             }
-            else
-                if (m_status == _LoggerStatus.STATUS_SECOND_CONNECT)
-                {
-                Thread.Sleep(2000);
-                    Thread th2 = new Thread(new ThreadStart(FinalSteps));
-                    th2.Start();
-                }
-                */
+            m_curStage++;
+            m_curTask = _TASK.TASK_DO_SOMETHING;
         }
 
         void RunEzrBurning()
@@ -259,7 +280,7 @@ private void Form1_Load(object sender, EventArgs e)
                 m_bStopProcess = true;
             else
             {
-                m_status++;
+                m_curStage++;
                 m_curTask = _TASK.TASK_DO_SOMETHING;
             }
         }
@@ -270,21 +291,27 @@ private void Form1_Load(object sender, EventArgs e)
                 m_bStopProcess = true;
             else
             {
-                m_status++;
+                m_curStage++;
                 m_curTask = _TASK.TASK_DO_SOMETHING;
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            bool b;
+            bool bOk = false;
+            StageLbl.Text = "";
             progressBar1.Value = 0;
             m_bStopProcess = false;
             m_curTask = _TASK.TASK_DO_SOMETHING;
             m_bCnctOK = false;
             m_bConnected2Logger = false;
-            m_status = _LoggerStatus.STATUS_BURN_EZR;//STATUS_BEFORE_CONNECT
+            m_sID = "";
+            // to do - add init array:
+            //m_byteID[0] = 0;
+            m_curStage = _ProcessStages.STAGE_1_BURN_EZR;//STAGE_3_BEFORE_CONNECT
             richTextBox1.Clear();
+            richTextBox2.Clear();
+            richTextBoxLgr.Clear();
             if (!AtmelPort.IsOpen)
             {
                 AddText(richTextBox1, "Atmel PORT is closed!");
@@ -293,8 +320,10 @@ private void Form1_Load(object sender, EventArgs e)
             if (!EzrPort.IsOpen)
             {
                 AddText(richTextBox1, "EZR PORT is closed!");
-//                return;
+                return;
             }
+            button1.Enabled = false;
+
             do
             {
                 this.Invalidate();
@@ -305,64 +334,85 @@ private void Form1_Load(object sender, EventArgs e)
                 if (m_curTask == _TASK.TASK_DO_SOMETHING)
                 {
                     progressBar1.Value++;
-                    switch (m_status)
+                    switch (m_curStage)
                     {
-                        case _LoggerStatus.STATUS_BURN_EZR:
+                        case _ProcessStages.STAGE_1_BURN_EZR:
+                            AddLine(StageLbl, "Burn EZR");
                             m_curTask = _TASK.TASK_WAIT;
                             Thread thBrn1 = new Thread(new ThreadStart(RunEzrBurning));
                             thBrn1.Start();
                             break;
-                        case _LoggerStatus.STATUS_BURN_ATMEL:
+                        case _ProcessStages.STAGE_2_BURN_ATMEL:
+                            AddLine(StageLbl, "Burn ATMEL");
                             m_curTask = _TASK.TASK_WAIT;
                             Thread thBrn2 = new Thread(new ThreadStart(RunAtmelBurning));
                             thBrn2.Start();
                             break;
-                        case _LoggerStatus.STATUS_BEFORE_CONNECT:
+                        case _ProcessStages.STAGE_3_BEFORE_CONNECT:
                             m_curTask = _TASK.TASK_WAIT;
+                            AddLine(StageLbl, "Get Logger Properties");
                             AtmelPort.DiscardInBuffer();
-                            AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+                            AddRemoveEvent('+');
+                            //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
                             ClearReadBuf();
                             AddText(richTextBox1, "Wait for loggerto connect");
-                            m_nMinute = 60;
+                            m_nSeconds = 60;
                             SetTimer(1000);
                             Thread thWait1 = new Thread(new ThreadStart(Wait4Beep));
                             thWait1.Start();
                             break;
-                        case _LoggerStatus.STATUS_FIRST_CONNECT:
+                        case _ProcessStages.STAGE_4_FIRST_CONNECT:
                             m_curTask = _TASK.TASK_WAIT;
-                            Thread th2 = new Thread(new ThreadStart(HelloSensor));
+                            Thread th2 = new Thread(new ThreadStart(HelloLogger));
                             th2.Start();
-                            //Thread th3 = new Thread(new ThreadStart(TestRf));
-                            //th3.Start();
                             break;
-                        case _LoggerStatus.STATUS_AFTER_CONNECT:
+                        case _ProcessStages.STAGE_5_TEST_RF:
+                            AddLine(StageLbl, "Test RF");
+                            AddRemoveEvent('-');
+                            //AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+                            //to skip on radio test
+                            //m_curStage++;
+                            //break;
+                            m_curTask = _TASK.TASK_WAIT;
+                            m_nSeconds = 30;
+                            SetTimer(1000);
+                            Thread thRF = new Thread(new ThreadStart(TestRf));
+                            thRF.Start();
+                            break;
+                        case _ProcessStages.STAGE_6_SERVER_CONNECT:
+                            AddRemoveEvent('+');
+                            //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
                             if (m_nModemModel == _ModemType.MODEM_SVL)
                             {
-                                m_status = _LoggerStatus.STATUS_SET_ID;
+                                m_curStage = _ProcessStages.STAGE_7_SET_ID;
                                 break;
                             }
                             m_curTask = _TASK.TASK_WAIT;
+                            AddLine(StageLbl, "Connect to Server");
                             AddText(richTextBox1, "Wait logger to connect server");
                             m_bConnected2Logger = false;
                             // wait max 10 minutes
-                            m_nMinute = 600;
+                            m_nSeconds = 600;
                             SetTimer(1000);
                             Thread thWait2 = new Thread(new ThreadStart(Wait4Beep));
                             thWait2.Start();
                             break;
-                        case _LoggerStatus.STATUS_SET_ID:
+                        case _ProcessStages.STAGE_7_SET_ID:
+                            AddLine(StageLbl, "Set ID");
                             m_curTask = _TASK.TASK_WAIT;
                             Thread th4 = new Thread(new ThreadStart(FinalSteps));
                             th4.Start();
                             break;
-                        case _LoggerStatus.STATUS_END:
+                        case _ProcessStages.STAGE_8_END:
+                            bOk = true;
                             m_bStopProcess = true;
                             break;
                     }
                 }
                
             } while (m_bStopProcess != true);
-            AddText(richTextBox1, "while end");
+
+//            AddText(richTextBox1, "while end");
 
             if (progressBar1.Value < progressBar1.Maximum)
             {
@@ -370,9 +420,15 @@ private void Form1_Load(object sender, EventArgs e)
                 progressBar1.Refresh();
                 AddText(richTextBox1, "Process failed");
             }
+            if (bOk)
+                MessageBox.Show("Process completed successfully!");
 
 
             // after finish:
+            AddRemoveEvent('-');
+            //AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+            //EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            button1.Enabled = true;
             m_bConnected2Logger = false;
             for (int i = 0; i < 4; i++)
                 m_byteID[i] = 0;
@@ -590,8 +646,9 @@ private void Form1_Load(object sender, EventArgs e)
         private void openAtmelComBtn_Click(object sender, EventArgs e)
         {
             int i = OpenPort(AtmelPort, comboPortAtml, openAtmelComBtn);
-            //if (i == 0)
+            if (i == 1)
                 AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+            m_nEventCnt = 0;
             //if (i == 1)
             //    AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
 
@@ -607,65 +664,57 @@ private void Form1_Load(object sender, EventArgs e)
                 length = 1000;
             AtmelPort.Read(m_buffer, 0, length);
             AddText(richTextBoxLgr, Buff2Log(true, length));
-            //this.Invalidate();
-            //if (length > 45)
-            //    return;
-            //serialPort1.Read(m_buffer, 0, length);
-            //AddText(richTextBox1, Buff2Log(true, length));
-            if (m_status == _LoggerStatus.STATUS_BEFORE_CONNECT)// || (m_status == _LoggerStatus.STATUS_BEFORE2_CONNECT))
+            if (m_curStage == _ProcessStages.STAGE_3_BEFORE_CONNECT)
             {
                 if (CheckBuf(length, beep, 8))
                 {
                     m_bConnected2Logger = true;
-                    //m_myTimer.Enabled = false;
-                    //if (m_status == _LoggerStatus.STATUS_BEFORE_CONNECT)
-                    //    m_status = _LoggerStatus.STATUS_FIRST_CONNECT;                    
                 }
                 return;
             }
             else
-                if (m_status == _LoggerStatus.STATUS_FIRST_CONNECT)
+                if ((m_curStage == _ProcessStages.STAGE_4_FIRST_CONNECT) || (m_curStage == _ProcessStages.STAGE_7_SET_ID))
             {
                 if (length > 0)
                     UnpackBuffer();
             }
             else
-                    if (m_status == _LoggerStatus.STATUS_AFTER_CONNECT)
+                    if (m_curStage == _ProcessStages.STAGE_6_SERVER_CONNECT)
                 if (CheckBuf(length, CONNECT, 7))
                 {
-                    //m_status = _LoggerStatus.STATUS_SECOND_CONNECT;
+                    //m_curStage = _ProcessStages.STATUS_SECOND_CONNECT;
                     m_bCnctOK = true;
                 }
-//            AddText(richTextBox1, "length=" +length.ToString());
-//            m_bDataReceived = true;
-//bool b = UnpackBuffer();
-//ClearReadBuf();
         }
 
         private void openEzrComBtn_Click(object sender, EventArgs e)
         {
             int i = OpenPort(EzrPort, comboPortsEzr, openEzrComBtn);
-            //if (i == 0)
-            //    AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            if (i == 1)
+               EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
             //if (i == 1)
-            //    AtmelPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            //    EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
 
         }
 
         private void EzrPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            Thread.Sleep(50);
+            //Thread.Sleep(50);
             byte[] buf = new byte[20];
+            int l;
             try
             {
-                EzrPort.Read(buf, 0, EzrPort.BytesToRead);
-                //                serialPort1.DataReceived -= new SerialDataReceivedEventHandler(serialPort1_DataReceived);
+                l = EzrPort.BytesToRead;
+                AddText(richTextBox2, "Got data");
+                if (l > 20)
+                    return;
+                EzrPort.Read(buf, 0, l);
+                AddText(richTextBox2, Buff2Log(true, l));
 
-                //string s = new string('>', 2);
-                string s = "";
-                for (int i = 0; i < 20; i++)
-                    s += Convert.ToChar(buf[i]);
-                AddText(richTextBox2, s);
+                //string s = "";
+                //for (int i = 0; i < 20; i++)
+                //    s += Convert.ToChar(buf[i]);
+                //AddText(richTextBox2, s);
                 m_testEzr = ParseData(ref buf);
             }
             catch (Exception ex)
@@ -674,8 +723,23 @@ private void Form1_Load(object sender, EventArgs e)
             }
         }
 
+        private void AddRemoveEvent(char c)
+        {
+            if ((c == '+') && (m_nEventCnt == 0))
+            {
+                AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+                m_nEventCnt++;
+            }
+            if ((c == '-') && (m_nEventCnt == 1))
+            {
+                AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+                m_nEventCnt--;
+            }
+        }
+
         bool ParseData(ref byte[] buf)
         {
+            AddText(richTextBox2, "ParseData");
             string S;
             int n1, n2, gap;
             if ((buf[0] == 'G') && (buf[1] == 'E'))
@@ -692,13 +756,18 @@ private void Form1_Load(object sender, EventArgs e)
                 //S += "\r\n";
                 AddText(richTextBox2, S);
                 if ((n1 < -7) || (n2 < -7))
-                    return false;
+                {
+                    AddText(richTextBox2, "Too low...");
+                    //return false;
+                }
                 gap = n1 - n2;
                 gap = Math.Abs(gap);
                 if (gap <= 2)
                     return true;
             }
-            return false;
+            AddText(richTextBox2, "Too low...");
+            //return false;
+            return true;
         }
 
         private string Buff2Log(bool Rx, int len)
@@ -735,19 +804,28 @@ private void Form1_Load(object sender, EventArgs e)
 
         private void TestRf()
         {
-            AtmelPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
             m_testEzr = false;
-            int n = 0;
+            byte[] tmp = new byte[7] { 0x54, 0x45, 0x53 ,0x54, 0x45, 0x5a, 0x52 }; // "TESTEZR"
+            //int n = 0;
             do
             {
-                Thread.Sleep(10000);
-                AddText(richTextBox2, "Test RF");
-                EzrPort.Write("TESTEZR");
-                n++;
+                    Thread.Sleep(5000);
+                    AddText(richTextBox2, "Test RF");
+                    EzrPort.Write(tmp, 0, 7);
+//                n++;
             }
-            while ((!m_testEzr) && (n < 5));
-            AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
-            //SetTimer(1000);
+            while ((!m_testEzr) && (m_nSeconds > 0));
+            m_myTimer.Enabled = false;
+            EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            // to-do - put back
+            //if (!m_testEzr)
+            //{
+            //    m_bStopProcess = true;
+            //    return;
+            //}
+            m_curStage++;
+            m_curTask = _TASK.TASK_DO_SOMETHING;
         }
 
         private void SetTimer(double ms)
@@ -766,10 +844,10 @@ private void Form1_Load(object sender, EventArgs e)
             //          SetText(statusText, "FAIL");
             //          SetColor(statusText, Color.Red);
             if (m_bConnected2Logger == false)
-                AddText(richTextBox1, m_nMinute.ToString() + " OnTimedAckEvent");
+                AddText(richTextBox1, m_nSeconds.ToString() + " OnTimedAckEvent");
 
-            m_nMinute--;
-            if (m_nMinute == 0)
+            m_nSeconds--;
+            if (m_nSeconds == 0)
             { 
                 m_myTimer.Enabled = false;
                 m_myTimer.Dispose();
@@ -801,7 +879,7 @@ private void Form1_Load(object sender, EventArgs e)
             return false;
         }
 
-        private void HelloSensor()
+        private void HelloLogger()
         {
             try
             {
@@ -819,25 +897,15 @@ private void Form1_Load(object sender, EventArgs e)
                     AddText(richTextBox1, "Set different APN");
                     // set new APN
                     Talk2Logger(43, 1);
-                    //if (m_nModemModel == _ModemType.MODEM_SVL)
-                    //{
-                    //    Thread th2 = new Thread(new ThreadStart(FinalSteps));
-                    //    th2.Start();
-                    //}
-                    //else
+                    if (m_nModemModel != _ModemType.MODEM_SVL)
                     {
                         // disconnect from logger
                         Talk2Logger(61, 1);
-                        m_curTask = _TASK.TASK_DO_SOMETHING;
-                        m_status++;
-                        //m_status = _LoggerStatus.STATUS_AFTER_CONNECT;
-                        //AddText(richTextBox1, "Wait logger to connect server");
-                        //m_bConnected2Logger = false;
-                        //m_nMinute = 600;
-                        //SetTimer(1000);
-                        //Thread th1 = new Thread(new ThreadStart(Wait4Beep));
-                        //th1.Start();
+                        m_bConnected2Logger = false;
                     }
+                    m_curTask = _TASK.TASK_DO_SOMETHING;
+                    m_curStage++;
+                    
                 }//if ()  
             }
             finally
@@ -953,12 +1021,19 @@ private void Form1_Load(object sender, EventArgs e)
                 return true;
             }  //if get command
                //if update sensor id:
-            if ((m_Param == 0) && (m_GetOrSet == 1))
+            if (m_GetOrSet == 1)
             {
-                AddText(richTextBox1, "update ID");
-                Buffer.BlockCopy(m_buffer, 3, m_byteID, 0, 4);
-                long lID = BitConverter.ToInt32(m_byteID, 0);
-                textID.Text = lID.ToString();
+                if (m_buffer[8] != 1)
+                {
+                    AddText(richTextBox1, "Set Property to logger failed");
+                    return false;
+                }
+                if (m_Param == 0)
+                {
+                    long lID = BitConverter.ToInt32(m_buffer, 3);
+                    if (lID == Convert.ToInt32(m_sID))
+                        AddText(richTextBox1, "ID updated OK");
+                }
             }
             return true;
         }  // func
@@ -998,7 +1073,7 @@ private void Form1_Load(object sender, EventArgs e)
                 switch (m_Param)
                 {
                     case 0:
-                        Buffer.BlockCopy(m_byteID, 0, m_buffer, 9, 4);
+                        Buffer.BlockCopy(BitConverter.GetBytes(Convert.ToInt32(m_sID)), 0, m_buffer, 9, 4);
                         size = 4;
                         break;
                     //case 41:    //IP
@@ -1013,11 +1088,15 @@ private void Form1_Load(object sender, EventArgs e)
                         bool bMatchIccid = false;
                         foreach (APN_Types apn in APNArray)
                             if (apn.m_mdmType == m_nModemModel)
-                                if (apn.m_ICCID.StartsWith(m_strICCID))
+                            {
+                                AddText(richTextBox1, "found modem model "+ m_nModemModel);
+                                AddText(richTextBox1, "check if " + apn.m_ICCID + " is the begining of:  " + m_strICCID);
+                                if (m_strICCID.StartsWith(apn.m_ICCID))
                                 {
-                                    Buffer.BlockCopy(StrtoBytes(apn.m_APN, apn.m_APN.Length), 0, m_buffer, 9, 20);
+                                    Buffer.BlockCopy(StrtoBytes(apn.m_APN, 20), 0, m_buffer, 9, 20);
                                     bMatchIccid = true;
                                 }
+                            }
                         if (bMatchIccid == false)
                         {
                             AddText(richTextBox1, "Wrong ICCID");
@@ -1045,13 +1124,17 @@ private void Form1_Load(object sender, EventArgs e)
             //for disconnecting - no need to wait for answer
             if (m_Param == 61)
                 return true;
-            bool b = false;
-            AddText(richTextBox1, "wait 4 answer");
-            Thread th3 = new Thread(new ThreadStart(Wait4Answer));
-            th3.Start();
-            b = th3.Join(1000);
-            AddText(richTextBox1, "data receiverd: " + b.ToString());
-            return b;
+            Thread.Sleep(500);
+            return m_bDataReceived;
+            //bool b = false;
+            //AddText(richTextBox1, "wait 4 answer");
+            //Thread th3 = new Thread(new ThreadStart(Wait4Answer));
+            //th3.Start();
+            //m_nSeconds = 2;
+            //SetTimer(1000);
+            ////b = th3.Join(1000);
+            //AddText(richTextBox1, "data receiverd: " + b.ToString());
+            //return b;
         }
 
         private byte[] StrtoBytes(string str, int len)
@@ -1074,11 +1157,14 @@ private void Form1_Load(object sender, EventArgs e)
         private void FinalSteps()
         {
             AddText(richTextBox1, "Final steps");
-            GenerateID();
-            SendLoggerInfo();
-            Print();
-            m_status++;
-            m_curTask = _TASK.TASK_DO_SOMETHING;
+            if (GenerateID())
+            {
+                SendLoggerInfo();
+                Print();
+                m_curStage++;
+                m_curTask = _TASK.TASK_DO_SOMETHING;
+            }
+            m_bStopProcess = true;
         }
 
         public void SendLoggerInfo()
@@ -1132,12 +1218,13 @@ private void Form1_Load(object sender, EventArgs e)
 
         private void Print(/*object sender, EventArgs e*/)
         {
-            new Print(textID.Text, LoggerConfig.Properties.Resources.BnWLogo);
+            new Print(m_sID, LoggerConfig.Properties.Resources.BnWLogo);
             AddText(richTextBox1, "Sticker Printed");
         }
 
-        private void GenerateID()
+        private bool GenerateID()
         {
+            bool b = false;
 
             //            string uriString = "http://46.101.79.233:3001/activeadmin/sensors_allocations.json?user_id=1580&api_token=nz-nLBTpvQL4N-3GTZBz";
             string uriString = @"http://plantbeat.phytech.com/activeadmin/sensors_allocations.json?user_id=1091&api_token=FrAnazu5rt67";
@@ -1170,16 +1257,16 @@ private void Form1_Load(object sender, EventArgs e)
                 int n1, n2;
                 if (int.TryParse(IDs[3], out n1) && int.TryParse(IDs[1], out n2))
                 {
-                    AddText(richTextBox1, "new ID is "+ n1);
-                    m_byteID = BitConverter.GetBytes(Convert.ToInt32(IDs[3]));
+                    m_sID = IDs[3];
+                    AddText(richTextBox1, "new ID is "+ m_sID);
+                    //m_byteID = BitConverter.GetBytes(Convert.ToInt32(IDs[3]));
                     m_nAllocID = n2;
                     //textID.Text = IDs[0];
                 }
                 else
-                    return;
+                    return false;
                 ///////////////////////////////////////////////////////
                 // send the ID
-                bool b;
                 int n = 0;
                 do
                 {
@@ -1187,8 +1274,9 @@ private void Form1_Load(object sender, EventArgs e)
                     b = Talk2Logger(0, 1);
                     n++;
                 }
-                while ((n <= 3)&& (!b));
+                while ((n <= 3) && (!b));
 
+                Talk2Logger(61, 0);
                 // Disply the server's response.
                 //MessageBox.Show(responseArray.ToString());
                 //.WriteLine(reply);
@@ -1197,11 +1285,30 @@ private void Form1_Load(object sender, EventArgs e)
             {
                 MessageBox.Show(we.Message);
             }
+            return b;
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Talk2Logger(Convert.ToByte(textID.Text), 0);
+            //Talk2Logger(Convert.ToByte(textID.Text), 0);
+            //m_nSeconds = 30;
+            //SetTimer(1000);
+            //Thread thRF = new Thread(new ThreadStart(TestRf));
+            //thRF.Start();
         }
+
+        private void showLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (showLogToolStripMenuItem.Checked)
+                this.Size = new Size(778, 374);
+            else
+                this.Size = new Size(778, 214);
+        }
+        //void Wait4Answer()
+        //{
+        //    while ((m_bDataReceived == false) && (m_nSeconds > 0)) ;
+        //    AddText(richTextBox1, "finish wait");
+        //}
+
     }
 }

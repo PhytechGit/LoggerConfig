@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("LoggerConfig")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Burning and Configuring logger")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Phytech LTD")]
 [assembly: AssemblyProduct("LoggerConfig")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
