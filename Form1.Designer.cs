@@ -105,7 +105,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(442, 38);
+            this.button1.Location = new System.Drawing.Point(77, 129);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(189, 34);
             this.button1.TabIndex = 5;
@@ -143,13 +143,12 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(661, 135);
+            this.button2.Location = new System.Drawing.Point(14, 131);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(97, 32);
+            this.button2.Size = new System.Drawing.Size(57, 32);
             this.button2.TabIndex = 10;
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.Visible = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // richTextBox2
@@ -163,17 +162,17 @@
             // progressBar1
             // 
             this.progressBar1.Enabled = false;
-            this.progressBar1.Location = new System.Drawing.Point(331, 109);
+            this.progressBar1.Location = new System.Drawing.Point(275, 143);
             this.progressBar1.Maximum = 8;
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(419, 20);
+            this.progressBar1.Size = new System.Drawing.Size(475, 20);
             this.progressBar1.TabIndex = 12;
             // 
             // StageLbl
             // 
             this.StageLbl.AutoSize = true;
             this.StageLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
-            this.StageLbl.Location = new System.Drawing.Point(460, 20);
+            this.StageLbl.Location = new System.Drawing.Point(410, 26);
             this.StageLbl.Name = "StageLbl";
             this.StageLbl.Size = new System.Drawing.Size(0, 16);
             this.StageLbl.TabIndex = 14;
@@ -208,7 +207,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(762, 175);
+            this.ClientSize = new System.Drawing.Size(762, 238);
             this.Controls.Add(this.StageLbl);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.richTextBox2);

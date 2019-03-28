@@ -86,11 +86,13 @@ namespace LoggerConfig
         byte[] CONNECT = new byte[7] { 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54 }; // "CONNECT"
         List<APN_Types> APNArray;
         string      m_sVer;
+        string m_sOfficialVer;
         string      m_sBtr;
         int         m_nSeconds;
         byte[]      m_iccid = new byte[20];
         string      m_strICCID;
         int         m_nEventCnt;
+        bool m_bReqOK;
         _ModemType   m_nModemModel;
         _ProcessStages m_curStage;
         _TASK       m_curTask;
@@ -162,7 +164,7 @@ namespace LoggerConfig
         private void LoadVersions()
         {
             string uriStagingString = @"https://phytoweb-staging.herokuapp.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";
-            string uriString = @"http://plantbeat.phytech.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";            
+            //string uriString = @"http://plantbeat.phytech.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";            
             try
             {
                 WebClient client = new WebClient();
@@ -172,7 +174,7 @@ namespace LoggerConfig
                 //if (DbgMode == 1)
                 //    s = client.DownloadString(uriStagingString);
                 //else
-                m_sVer = client.DownloadString(uriString);//  .UploadValues(uriString, myNameValueCollection);
+                m_sOfficialVer = client.DownloadString(/*uriString*/uriStagingString);//  .UploadValues(uriString, myNameValueCollection);
                 
                 //m_sSWVer = s;
           //      txtOficialVer.Text = m_sSWVer;
@@ -185,9 +187,15 @@ namespace LoggerConfig
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.Size = new Size(778, 214);
             LoadPorts();
             LoadFilesName();
             LoadFactory();
+            if (m_sFactory == "")
+            {
+                MessageBox.Show("Undefined Producer!\r\nClosing Application...");
+                this.Close();                
+            }
             LoadAPN();
             LoadVersions();
         }
@@ -240,7 +248,8 @@ namespace LoggerConfig
                 else
                 {
                     string s = c.Text;
-                    s += "\r\n";
+                    if (s != "")
+                        s += "\r\n";
                     s += text;
                     c.Text = s;                  
                     //c.AppendText(text);
@@ -314,12 +323,14 @@ namespace LoggerConfig
             richTextBoxLgr.Clear();
             if (!AtmelPort.IsOpen)
             {
-                AddText(richTextBox1, "Atmel PORT is closed!");
+                MessageBox.Show("Atmel PORT is closed!");
+                //AddText(richTextBox1, "Atmel PORT is closed!");
                 return;
             }
             if (!EzrPort.IsOpen)
             {
-                AddText(richTextBox1, "EZR PORT is closed!");
+                MessageBox.Show("EZR PORT is closed!");
+                //AddText(richTextBox1, "EZR PORT is closed!");
                 return;
             }
             button1.Enabled = false;
@@ -388,7 +399,7 @@ namespace LoggerConfig
                                 break;
                             }
                             m_curTask = _TASK.TASK_WAIT;
-                            AddLine(StageLbl, "Connect to Server");
+                            AddLine(StageLbl, "Connect to Server ("+ m_nModemModel.ToString() + ")");
                             AddText(richTextBox1, "Wait logger to connect server");
                             m_bConnected2Logger = false;
                             // wait max 10 minutes
@@ -419,6 +430,8 @@ namespace LoggerConfig
                 progressBar1.Value = 0;
                 progressBar1.Refresh();
                 AddText(richTextBox1, "Process failed");
+                MessageBox.Show("Process failed...");
+
             }
             if (bOk)
                 MessageBox.Show("Process completed successfully!");
@@ -691,9 +704,7 @@ namespace LoggerConfig
         {
             int i = OpenPort(EzrPort, comboPortsEzr, openEzrComBtn);
             if (i == 1)
-               EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
-            //if (i == 1)
-            //    EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+                EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
 
         }
 
@@ -702,20 +713,26 @@ namespace LoggerConfig
             //Thread.Sleep(50);
             byte[] buf = new byte[20];
             int l;
+            string s = "";
             try
             {
+                Thread.Sleep(50);
                 l = EzrPort.BytesToRead;
-                AddText(richTextBox2, "Got data");
+//                AddText(richTextBox2, "Got data");
                 if (l > 20)
                     return;
                 EzrPort.Read(buf, 0, l);
-                AddText(richTextBox2, Buff2Log(true, l));
+                for (int i = 0; i < l; i++)
+                        s += Convert.ToChar(buf[i]);
+
+                 AddText(richTextBox2, s);
 
                 //string s = "";
                 //for (int i = 0; i < 20; i++)
                 //    s += Convert.ToChar(buf[i]);
                 //AddText(richTextBox2, s);
-                m_testEzr = ParseData(ref buf);
+                if (m_curStage == _ProcessStages.STAGE_5_TEST_RF)
+                    m_testEzr = ParseData(ref buf);
             }
             catch (Exception ex)
             {
@@ -888,25 +905,39 @@ namespace LoggerConfig
                 {
                     AddText(richTextBox1, "Get SW version");
                     Talk2Logger(58, 0);       //get software version
-                    AddText(richTextBox1, "Get Battery");
-                    Talk2Logger(55, 0);       //get battery
-                    AddText(richTextBox1, "Get ICCID");
-                    Talk2Logger(65, 0);         // iccid
-                    AddText(richTextBox1, "Get Modem type");
-                    Talk2Logger(66, 0);         //modem type
-                    AddText(richTextBox1, "Set different APN");
-                    // set new APN
-                    Talk2Logger(43, 1);
-                    if (m_nModemModel != _ModemType.MODEM_SVL)
+                    if (m_sVer == m_sOfficialVer)                        
                     {
-                        // disconnect from logger
-                        Talk2Logger(61, 1);
-                        m_bConnected2Logger = false;
-                    }
-                    m_curTask = _TASK.TASK_DO_SOMETHING;
-                    m_curStage++;
-                    
+                        AddText(richTextBox1, "Get Battery");
+                        Talk2Logger(55, 0);       //get battery
+                        AddText(richTextBox1, "Get ICCID");
+                        Talk2Logger(65, 0);         // iccid
+                        AddText(richTextBox1, "Get Modem type");
+                        Talk2Logger(66, 0);         //modem type
+                        AddText(richTextBox1, "Set different APN");
+                        // set new APN
+                        if (Talk2Logger(43, 1))
+                        {
+                            if (m_bReqOK)
+                            {
+                                if (m_nModemModel != _ModemType.MODEM_SVL)
+                                {
+                                    // send to logger Task of connecting to server 
+                                    Talk2Logger(67, 1);
+                                    m_bConnected2Logger = false;
+                                }
+                                m_curTask = _TASK.TASK_DO_SOMETHING;
+                                m_curStage++;
+                            }
+                        }
+                    }                    
                 }//if ()  
+                if (m_curTask != _TASK.TASK_DO_SOMETHING)
+                {
+                    //disconnect from logger
+                    Talk2Logger(61, 1);
+                    m_bStopProcess = true;
+                    return;
+                }
             }
             finally
             {
@@ -986,7 +1017,8 @@ namespace LoggerConfig
                         break;
                     case 55:    //battery
                         value = BitConverter.ToInt16(m_buffer, 8);
-                        AddText(richTextBox1, "battery value is: " + value.ToString());
+                        m_sBtr = value.ToString();
+                        AddText(richTextBox1, "battery value is: " + m_sBtr);
                         //textBat.Text = value.ToString();
 //                        SetText(textBat, value.ToString());
                         break;
@@ -997,13 +1029,8 @@ namespace LoggerConfig
                         //SetText(textRssi, value.ToString());
                         break;
                     case 58:    //Rom Version
-                        string s = ParseVersion();
-                        AddText(richTextBox1, "version of application is: " + s);
-                        if (m_sVer != s)
-                        {
-                            AddText(richTextBox1, "wrong version!");
-                            return false;
-                        }
+                        m_sVer = ParseVersion();
+                        AddText(richTextBox1, "version of application is: " + m_sVer);                        
                         break;
                     case 65:
                         Buffer.BlockCopy(m_buffer, 8, m_iccid, 0, 20);
@@ -1034,6 +1061,7 @@ namespace LoggerConfig
                     if (lID == Convert.ToInt32(m_sID))
                         AddText(richTextBox1, "ID updated OK");
                 }
+                m_bReqOK = true;
             }
             return true;
         }  // func
@@ -1061,6 +1089,7 @@ namespace LoggerConfig
             int n;
             m_Param = prmIndex;
             m_GetOrSet = getOrSet;  //get = 0, set = 1
+            m_bReqOK = false;
 
             m_buffer[0] = 0xFF;
             m_buffer[1] = 0xFF;
@@ -1183,7 +1212,8 @@ namespace LoggerConfig
             string strAddress = String.Format(@"http://plantbeat.phytech.com/activeadmin/sensors_allocations/{0}.json?user_id=1091&api_token=FrAnazu5rt67", m_nAllocID);
             String strLine;// = "authtoken=4b8873e7a46d5cf77a027bda4feb3fe4&scope=crmapi&wfTrigger=true&xmlData=<Products><row no=\"1\">";
             strLine = String.Format("&factory={0}&worker_identifier={1}&software_version={2}&hardware_version={3}", m_sFactory, "", m_sVer, "");
-            strLine += String.Format("&battery_value={0}&hardware_type=RemoteLogger", m_sBtr);
+            strLine += String.Format("&battery_value={0}&hardware_type=RemoteLogger&sensor_type={1}&measuring_value={2}", m_sBtr, m_nModemModel, m_strICCID);
+            //strLine += String.Format("rssi_value={3}", textPin.Text);
 
             AddText(richTextBox1, "Sending Logger parameter to server...");
             try
@@ -1259,6 +1289,7 @@ namespace LoggerConfig
                 {
                     m_sID = IDs[3];
                     AddText(richTextBox1, "new ID is "+ m_sID);
+                    AddLine(StageLbl, m_sID);
                     //m_byteID = BitConverter.GetBytes(Convert.ToInt32(IDs[3]));
                     m_nAllocID = n2;
                     //textID.Text = IDs[0];
@@ -1277,6 +1308,7 @@ namespace LoggerConfig
                 while ((n <= 3) && (!b));
 
                 Talk2Logger(61, 0);
+                AddRemoveEvent('-');
                 // Disply the server's response.
                 //MessageBox.Show(responseArray.ToString());
                 //.WriteLine(reply);
@@ -1291,10 +1323,12 @@ namespace LoggerConfig
         private void button2_Click(object sender, EventArgs e)
         {
             //Talk2Logger(Convert.ToByte(textID.Text), 0);
-            //m_nSeconds = 30;
-            //SetTimer(1000);
-            //Thread thRF = new Thread(new ThreadStart(TestRf));
-            //thRF.Start();
+            m_nSeconds = 30;
+            SetTimer(1000);
+            EzrPort.DiscardInBuffer();
+            m_curStage = _ProcessStages.STAGE_5_TEST_RF;
+            Thread thRF = new Thread(new ThreadStart(TestRf));
+            thRF.Start();
         }
 
         private void showLogToolStripMenuItem_Click(object sender, EventArgs e)

@@ -1,5 +1,5 @@
 0,BootloaderAtm1.10.elf
-1,WBRD200_3.19.1_FW_33.bin
+1,WBRD200_4.19.1_FW_41.bin
 2,WBRD200_9.18.7_JT_ID_0.eep
 3,rf_bootloader_1.04.hex
 4,RF_Receiver_2.19.3_FW_11.bin
