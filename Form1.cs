@@ -93,6 +93,7 @@ namespace LoggerConfig
         string      m_strICCID;
         int         m_nEventCnt;
         bool m_bReqOK;
+        int     m_nError;
         _ModemType   m_nModemModel;
         _ProcessStages m_curStage;
         _TASK       m_curTask;
@@ -198,6 +199,7 @@ namespace LoggerConfig
             }
             LoadAPN();
             LoadVersions();
+            StageLbl.Text = "";
         }
 
         delegate void AddTextCallback(RichTextBox c, string text);
@@ -265,6 +267,32 @@ namespace LoggerConfig
             }
         }
 
+        delegate void SetTextCallback(Label c, string text);
+
+        private void SetText(Label c, string text)
+        {
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            //if (this.textID.InvokeRequired)
+            try
+            {
+                if (c.InvokeRequired)
+                {
+                    SetTextCallback d = new SetTextCallback(SetText);
+                    this.Invoke(d, new object[] { c, text });
+                }
+                else
+                {
+                    c.Text = text;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+
         void Wait4Beep()
         {
             while (((m_bConnected2Logger == false) && (m_bCnctOK == false)) && (m_nSeconds > 0)) ;
@@ -272,6 +300,7 @@ namespace LoggerConfig
             if ((m_bConnected2Logger == false) && (m_bCnctOK == false))
             {                
                 m_bStopProcess = true;
+                m_nError = 20;
                 return;
             }
             if (m_bCnctOK)
@@ -310,6 +339,7 @@ namespace LoggerConfig
             bool bOk = false;
             StageLbl.Text = "";
             progressBar1.Value = 0;
+            m_nError = 0;
             m_bStopProcess = false;
             m_curTask = _TASK.TASK_DO_SOMETHING;
             m_bCnctOK = false;
@@ -321,6 +351,11 @@ namespace LoggerConfig
             richTextBox1.Clear();
             richTextBox2.Clear();
             richTextBoxLgr.Clear();
+            pictureOK1.Visible = false;
+            pictureOK2.Visible = false;
+            pictureOK3.Visible = false;
+            pictureOK4.Visible = false;
+            pictureOK5.Visible = false;
             if (!AtmelPort.IsOpen)
             {
                 MessageBox.Show("Atmel PORT is closed!");
@@ -345,6 +380,8 @@ namespace LoggerConfig
                 if (m_curTask == _TASK.TASK_DO_SOMETHING)
                 {
                     progressBar1.Value++;
+                    int x = (progressBar1.Value * 100) / progressBar1.Maximum;
+                    SetText(percentageLbl,x.ToString()+"%");
                     switch (m_curStage)
                     {
                         case _ProcessStages.STAGE_1_BURN_EZR:
@@ -354,14 +391,16 @@ namespace LoggerConfig
                             thBrn1.Start();
                             break;
                         case _ProcessStages.STAGE_2_BURN_ATMEL:
+                            pictureOK1.Visible = true;
                             AddLine(StageLbl, "Burn ATMEL");
                             m_curTask = _TASK.TASK_WAIT;
                             Thread thBrn2 = new Thread(new ThreadStart(RunAtmelBurning));
                             thBrn2.Start();
                             break;
                         case _ProcessStages.STAGE_3_BEFORE_CONNECT:
+                            pictureOK2.Visible = true;
                             m_curTask = _TASK.TASK_WAIT;
-                            AddLine(StageLbl, "Get Logger Properties");
+                            AddLine(StageLbl, "Configuring");
                             AtmelPort.DiscardInBuffer();
                             AddRemoveEvent('+');
                             //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
@@ -378,6 +417,7 @@ namespace LoggerConfig
                             th2.Start();
                             break;
                         case _ProcessStages.STAGE_5_TEST_RF:
+                            pictureOK3.Visible = true;
                             AddLine(StageLbl, "Test RF");
                             AddRemoveEvent('-');
                             //AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
@@ -391,6 +431,7 @@ namespace LoggerConfig
                             thRF.Start();
                             break;
                         case _ProcessStages.STAGE_6_SERVER_CONNECT:
+                            pictureOK4.Visible = true;
                             AddRemoveEvent('+');
                             //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
                             if (m_nModemModel == _ModemType.MODEM_SVL)
@@ -409,12 +450,20 @@ namespace LoggerConfig
                             thWait2.Start();
                             break;
                         case _ProcessStages.STAGE_7_SET_ID:
+                            if (m_nModemModel == _ModemType.MODEM_GE)
+                            {
+                                pictureOK5.Visible = true;
+                            }
                             AddLine(StageLbl, "Set ID");
                             m_curTask = _TASK.TASK_WAIT;
                             Thread th4 = new Thread(new ThreadStart(FinalSteps));
                             th4.Start();
                             break;
                         case _ProcessStages.STAGE_8_END:
+                            if (m_nModemModel == _ModemType.MODEM_SVL)
+                                pictureOK5.Visible = true;
+                            else
+                                pictureOK6.Visible = true;
                             bOk = true;
                             m_bStopProcess = true;
                             break;
@@ -430,7 +479,35 @@ namespace LoggerConfig
                 progressBar1.Value = 0;
                 progressBar1.Refresh();
                 AddText(richTextBox1, "Process failed");
-                MessageBox.Show("Process failed...");
+                string sErrorText = "";
+                switch (m_curStage)
+                {
+                    case _ProcessStages.STAGE_1_BURN_EZR:
+                        sErrorText = "Burn EZR failed";
+                        break;
+                    case _ProcessStages.STAGE_2_BURN_ATMEL:
+                        sErrorText = "Burn ATMEL failed";
+                        break;
+                    case _ProcessStages.STAGE_3_BEFORE_CONNECT:
+                        sErrorText = "Could not get logger parameters";
+                        break;
+                    case _ProcessStages.STAGE_4_FIRST_CONNECT:
+                        sErrorText = "Error during configuring logger";
+                        break;
+                    case _ProcessStages.STAGE_5_TEST_RF:
+                        sErrorText = "Test RF failed";
+                        break;
+                    case _ProcessStages.STAGE_6_SERVER_CONNECT:
+                        sErrorText = "Failed connecting to server";
+                        break;
+                    case _ProcessStages.STAGE_7_SET_ID:
+                        sErrorText = "Failed setting the ID";
+                        break;
+                    default:
+                        sErrorText = "Process failed...";
+                        break;
+                }
+                MessageBox.Show(sErrorText + " (" + m_nError + ")");
 
             }
             if (bOk)
@@ -487,10 +564,6 @@ namespace LoggerConfig
         //use atprogram.exe
         private int BurnAtmel()
         {
-            //string avrdudepath = "C:\\phytechburn\\avrdude\\";
-//            string line;
-//            int exitCode = 1;
-
             // The name of the key must include a valid root.
             const string userRoot = "HKEY_CURRENT_USER";
             const string subkey = "Software\\Atmel\\AtmelStudio\\7.0_Config";
@@ -525,14 +598,24 @@ namespace LoggerConfig
                         if (RunProcess(p, string.Format("-t avrispmk2 -i isp -d atmega644pa -cl 125khz program -fl -f {0} --format bin --verify ", files2Burn[(int)_FileType.TYPE_ATMEL_APP])) == 0)
                         {
                             AddText(richTextBox1, "Program EEprom:");
-                            return (RunProcess(p, string.Format("-t avrispmk2 -i isp -d atmega644pa -cl 125khz program -ee -f {0} --format hex --verify", files2Burn[(int)_FileType.TYPE_ATMEL_EEP])));
+                            int b = RunProcess(p, string.Format("-t avrispmk2 -i isp -d atmega644pa -cl 125khz program -ee -f {0} --format hex --verify", files2Burn[(int)_FileType.TYPE_ATMEL_EEP]));
+                            if (b == 0)
+                                m_nError = 13;
+                            return b;
                         }
+                        else
+                            m_nError = 12;
                     }
+                    else
+                        m_nError = 11;
                 }
+                else
+                    m_nError = 10;
             }
             catch (Exception e)
             {
                 AddText(richTextBox1, e.Message);
+                m_nError = 14;
             }
             return 1;
         }
@@ -585,6 +668,7 @@ namespace LoggerConfig
                 else
                 {
                     MessageBox.Show("Cant find J-Link Serial. \nPlease make sure it connected to your PC");
+                    m_nError = 1;
                     return false;
                 }
                 //textEZRno.Text = s;
@@ -606,9 +690,10 @@ namespace LoggerConfig
                     //brnEzrBtn.ForeColor = Color.White;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-
+                m_nError = 2;
+                AddText(richTextBox1, e.Message);
             }
             return false;
         }
@@ -779,12 +864,12 @@ namespace LoggerConfig
                 }
                 gap = n1 - n2;
                 gap = Math.Abs(gap);
-                if (gap <= 2)
+     //           if (gap <= 2)
                     return true;
             }
-            AddText(richTextBox2, "Too low...");
-            //return false;
-            return true;
+            //AddText(richTextBox2, "Too low...");
+            return false;
+            //return true;
         }
 
         private string Buff2Log(bool Rx, int len)
@@ -838,6 +923,7 @@ namespace LoggerConfig
             // to-do - put back
             //if (!m_testEzr)
             //{
+            m_nError = 30;
             //    m_bStopProcess = true;
             //    return;
             //}
@@ -929,13 +1015,17 @@ namespace LoggerConfig
                                 m_curStage++;
                             }
                         }
-                    }                    
+                        else
+                            AddText(richTextBox1, "failed set the APN");
+                    }
+                    AddText(richTextBox1, "Wrong Version");
                 }//if ()  
                 if (m_curTask != _TASK.TASK_DO_SOMETHING)
                 {
                     //disconnect from logger
                     Talk2Logger(61, 1);
                     m_bStopProcess = true;
+                    m_nError = 21;
                     return;
                 }
             }
@@ -1212,7 +1302,7 @@ namespace LoggerConfig
             string strAddress = String.Format(@"http://plantbeat.phytech.com/activeadmin/sensors_allocations/{0}.json?user_id=1091&api_token=FrAnazu5rt67", m_nAllocID);
             String strLine;// = "authtoken=4b8873e7a46d5cf77a027bda4feb3fe4&scope=crmapi&wfTrigger=true&xmlData=<Products><row no=\"1\">";
             strLine = String.Format("&factory={0}&worker_identifier={1}&software_version={2}&hardware_version={3}", m_sFactory, "", m_sVer, "");
-            strLine += String.Format("&battery_value={0}&hardware_type=RemoteLogger&sensor_type={1}&measuring_value={2}", m_sBtr, m_nModemModel, m_strICCID);
+            strLine += String.Format("&battery_value={0}&hardware_type=RemoteLogger&sensor_type={1}&measuring_value={2}", m_sBtr, (int)m_nModemModel, m_strICCID);
             //strLine += String.Format("rssi_value={3}", textPin.Text);
 
             AddText(richTextBox1, "Sending Logger parameter to server...");
@@ -1242,13 +1332,14 @@ namespace LoggerConfig
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                AddText(richTextBox1, ex.Message);
+                m_nError = 53;
             }
         }
 
         private void Print(/*object sender, EventArgs e*/)
         {
-            new Print(m_sID, LoggerConfig.Properties.Resources.BnWLogo);
+            new Print(m_sID, m_nModemModel, LoggerConfig.Properties.Resources.BnWLogo);
             AddText(richTextBox1, "Sticker Printed");
         }
 
@@ -1288,14 +1379,17 @@ namespace LoggerConfig
                 if (int.TryParse(IDs[3], out n1) && int.TryParse(IDs[1], out n2))
                 {
                     m_sID = IDs[3];
-                    AddText(richTextBox1, "new ID is "+ m_sID);
+                    AddText(richTextBox1, "new ID is " + m_sID);
                     AddLine(StageLbl, m_sID);
                     //m_byteID = BitConverter.GetBytes(Convert.ToInt32(IDs[3]));
                     m_nAllocID = n2;
                     //textID.Text = IDs[0];
                 }
                 else
+                {
+                    m_nError = 50;
                     return false;
+                }
                 ///////////////////////////////////////////////////////
                 // send the ID
                 int n = 0;
@@ -1307,7 +1401,7 @@ namespace LoggerConfig
                 }
                 while ((n <= 3) && (!b));
 
-                Talk2Logger(61, 0);
+                Talk2Logger(61, 1);
                 AddRemoveEvent('-');
                 // Disply the server's response.
                 //MessageBox.Show(responseArray.ToString());
@@ -1315,8 +1409,11 @@ namespace LoggerConfig
             }
             catch (WebException we)
             {
-                MessageBox.Show(we.Message);
+                AddText(richTextBox1, we.Message);
+                m_nError = 51;
             }
+            if (!b)
+                m_nError = 52;
             return b;
         }
 
@@ -1337,6 +1434,13 @@ namespace LoggerConfig
                 this.Size = new Size(778, 374);
             else
                 this.Size = new Size(778, 214);
+        }
+
+        private void cleareLogsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            richTextBox1.Clear();
+            richTextBox2.Clear();
+            richTextBoxLgr.Clear();
         }
         //void Wait4Answer()
         //{

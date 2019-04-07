@@ -48,7 +48,21 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cleareLogsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.percentageLbl = new System.Windows.Forms.Label();
+            this.pictureOK1 = new System.Windows.Forms.PictureBox();
+            this.pictureOK2 = new System.Windows.Forms.PictureBox();
+            this.pictureOK5 = new System.Windows.Forms.PictureBox();
+            this.pictureOK4 = new System.Windows.Forms.PictureBox();
+            this.pictureOK3 = new System.Windows.Forms.PictureBox();
+            this.pictureOK6 = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK6)).BeginInit();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -149,6 +163,7 @@
             this.button2.TabIndex = 10;
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Visible = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // richTextBox2
@@ -162,7 +177,7 @@
             // progressBar1
             // 
             this.progressBar1.Enabled = false;
-            this.progressBar1.Location = new System.Drawing.Point(275, 143);
+            this.progressBar1.Location = new System.Drawing.Point(275, 142);
             this.progressBar1.Maximum = 8;
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(475, 20);
@@ -174,8 +189,9 @@
             this.StageLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
             this.StageLbl.Location = new System.Drawing.Point(410, 26);
             this.StageLbl.Name = "StageLbl";
-            this.StageLbl.Size = new System.Drawing.Size(0, 16);
+            this.StageLbl.Size = new System.Drawing.Size(16, 16);
             this.StageLbl.TabIndex = 14;
+            this.StageLbl.Text = "0";
             // 
             // menuStrip1
             // 
@@ -190,7 +206,8 @@
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.showLogToolStripMenuItem});
+            this.showLogToolStripMenuItem,
+            this.cleareLogsToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
@@ -199,15 +216,105 @@
             // 
             this.showLogToolStripMenuItem.CheckOnClick = true;
             this.showLogToolStripMenuItem.Name = "showLogToolStripMenuItem";
-            this.showLogToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.showLogToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.showLogToolStripMenuItem.Text = "Show Log";
             this.showLogToolStripMenuItem.Click += new System.EventHandler(this.showLogToolStripMenuItem_Click);
+            // 
+            // cleareLogsToolStripMenuItem
+            // 
+            this.cleareLogsToolStripMenuItem.Name = "cleareLogsToolStripMenuItem";
+            this.cleareLogsToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.cleareLogsToolStripMenuItem.Text = "Cleare Logs";
+            this.cleareLogsToolStripMenuItem.Click += new System.EventHandler(this.cleareLogsToolStripMenuItem_Click);
+            // 
+            // percentageLbl
+            // 
+            this.percentageLbl.AutoSize = true;
+            this.percentageLbl.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.percentageLbl.Location = new System.Drawing.Point(492, 146);
+            this.percentageLbl.Name = "percentageLbl";
+            this.percentageLbl.Size = new System.Drawing.Size(21, 13);
+            this.percentageLbl.TabIndex = 16;
+            this.percentageLbl.Text = "0%";
+            // 
+            // pictureOK1
+            // 
+            this.pictureOK1.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK1.Image")));
+            this.pictureOK1.Location = new System.Drawing.Point(390, 26);
+            this.pictureOK1.Name = "pictureOK1";
+            this.pictureOK1.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK1.TabIndex = 17;
+            this.pictureOK1.TabStop = false;
+            this.pictureOK1.Visible = false;
+            // 
+            // pictureOK2
+            // 
+            this.pictureOK2.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK2.Image")));
+            this.pictureOK2.Location = new System.Drawing.Point(390, 42);
+            this.pictureOK2.Name = "pictureOK2";
+            this.pictureOK2.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK2.TabIndex = 18;
+            this.pictureOK2.TabStop = false;
+            this.pictureOK2.Visible = false;
+            // 
+            // pictureOK5
+            // 
+            this.pictureOK5.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK5.Image")));
+            this.pictureOK5.Location = new System.Drawing.Point(390, 92);
+            this.pictureOK5.Name = "pictureOK5";
+            this.pictureOK5.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK5.TabIndex = 19;
+            this.pictureOK5.TabStop = false;
+            this.pictureOK5.Visible = false;
+            // 
+            // pictureOK4
+            // 
+            this.pictureOK4.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK4.Image")));
+            this.pictureOK4.Location = new System.Drawing.Point(390, 75);
+            this.pictureOK4.Name = "pictureOK4";
+            this.pictureOK4.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK4.TabIndex = 20;
+            this.pictureOK4.TabStop = false;
+            this.pictureOK4.Visible = false;
+            // 
+            // pictureOK3
+            // 
+            this.pictureOK3.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK3.Image")));
+            this.pictureOK3.Location = new System.Drawing.Point(390, 58);
+            this.pictureOK3.Name = "pictureOK3";
+            this.pictureOK3.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK3.TabIndex = 21;
+            this.pictureOK3.TabStop = false;
+            this.pictureOK3.Visible = false;
+            // 
+            // pictureOK6
+            // 
+            this.pictureOK6.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK6.Image")));
+            this.pictureOK6.Location = new System.Drawing.Point(390, 109);
+            this.pictureOK6.Name = "pictureOK6";
+            this.pictureOK6.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK6.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK6.TabIndex = 22;
+            this.pictureOK6.TabStop = false;
+            this.pictureOK6.Visible = false;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(762, 238);
+            this.Controls.Add(this.pictureOK6);
+            this.Controls.Add(this.pictureOK3);
+            this.Controls.Add(this.pictureOK4);
+            this.Controls.Add(this.pictureOK5);
+            this.Controls.Add(this.pictureOK2);
+            this.Controls.Add(this.pictureOK1);
+            this.Controls.Add(this.percentageLbl);
             this.Controls.Add(this.StageLbl);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.richTextBox2);
@@ -229,6 +336,12 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK6)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -254,6 +367,14 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showLogToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cleareLogsToolStripMenuItem;
+        private System.Windows.Forms.Label percentageLbl;
+        private System.Windows.Forms.PictureBox pictureOK1;
+        private System.Windows.Forms.PictureBox pictureOK2;
+        private System.Windows.Forms.PictureBox pictureOK5;
+        private System.Windows.Forms.PictureBox pictureOK4;
+        private System.Windows.Forms.PictureBox pictureOK3;
+        private System.Windows.Forms.PictureBox pictureOK6;
     }
 }
 

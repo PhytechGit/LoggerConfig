@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.Windows.Forms;
 using QRCoder;
+using LoggerConfig;
 
 public class Print
 {
@@ -16,16 +17,18 @@ public class Print
     Image s_imgLogo;
     String sTitle;
     bool bFirstSticker;
+    _ModemType m_mdm;
 
     public Print()
     {
         Printing();
     }
 
-    public Print(string s,/* Image bc, Image QR,*/ Image lg)
+    public Print(string s, _ModemType mdm,/* Image bc, Image QR,*/ Image lg)
     {
         sTitle = s;
         s_imgLogo = lg;
+        m_mdm = mdm;
         Printing();
     }
     // The PrintPage event is raised for each page to be printed.
@@ -57,6 +60,7 @@ public class Print
         }
         ///////////////////
         ev.Graphics.DrawString(s1, printTitleFont, Brushes.Black, rightSticker, y, new StringFormat());
+        ev.Graphics.DrawString(m_mdm.ToString(), printTitleFont, Brushes.Black, rightSticker, y + 45, new StringFormat());
         ev.Graphics.DrawString(s3, printXLFont, Brushes.Black, rightSticker, y + 65, new StringFormat());
         ev.Graphics.DrawImage(s_imgLogo, rightSticker + 87, 0, s_imgLogo.Width, s_imgLogo.Height);
         ev.Graphics.DrawImage(LoggerConfig.Properties.Resources.rcmmark, rightSticker + 100, y + 48, 20, 20);
