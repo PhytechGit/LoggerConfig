@@ -228,13 +228,13 @@ namespace LoggerConfig
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBox.Show(e.Message);                
             }
         }
 
-        delegate void AddLineCallback(Label c, string text);
+        delegate void AddLineCallback(Label c, string text, bool bNewLine);
 
-        private void AddLine(Label c, string text)
+        private void AddLine(Label c, string text, bool bNewLine)
         {
             // InvokeRequired required compares the thread ID of the
             // calling thread to the thread ID of the creating thread.
@@ -245,25 +245,20 @@ namespace LoggerConfig
                 if (c.InvokeRequired)
                 {
                     AddLineCallback d = new AddLineCallback(AddLine);
-                    this.Invoke(d, new object[] { c, text });
+                    this.Invoke(d, new object[] { c, text, bNewLine });
                 }
                 else
                 {
                     string s = c.Text;
-                    if (s != "")
+                    if (bNewLine)//(s != "")
                         s += "\r\n";
                     s += text;
                     c.Text = s;                  
-                    //c.AppendText(text);
-                    //c.AppendText("\r\n");
-                    ////c.Text += text;
-                    //c.SelectionStart = c.Text.Length;
-                    //c.ScrollToCaret();
                 }
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                AddText(richTextBox1, "AddLine Error:" + e.Message);
             }
         }
 
@@ -289,7 +284,7 @@ namespace LoggerConfig
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                AddText(richTextBox1, "SetText Error:" + e.Message);
             }
         }
 
@@ -334,9 +329,8 @@ namespace LoggerConfig
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        void InitAll()
         {
-            bool bOk = false;
             StageLbl.Text = "";
             progressBar1.Value = 0;
             m_nError = 0;
@@ -356,6 +350,14 @@ namespace LoggerConfig
             pictureOK3.Visible = false;
             pictureOK4.Visible = false;
             pictureOK5.Visible = false;
+            pictureOK6.Visible = false;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            bool bOk = false;
+            InitAll();
+
             if (!AtmelPort.IsOpen)
             {
                 MessageBox.Show("Atmel PORT is closed!");
@@ -385,14 +387,14 @@ namespace LoggerConfig
                     switch (m_curStage)
                     {
                         case _ProcessStages.STAGE_1_BURN_EZR:
-                            AddLine(StageLbl, "Burn EZR");
+                            AddLine(StageLbl, "Burnning EZR", false);
                             m_curTask = _TASK.TASK_WAIT;
                             Thread thBrn1 = new Thread(new ThreadStart(RunEzrBurning));
                             thBrn1.Start();
                             break;
                         case _ProcessStages.STAGE_2_BURN_ATMEL:
                             pictureOK1.Visible = true;
-                            AddLine(StageLbl, "Burn ATMEL");
+                            AddLine(StageLbl, "Burnning ATMEL", true);
                             m_curTask = _TASK.TASK_WAIT;
                             Thread thBrn2 = new Thread(new ThreadStart(RunAtmelBurning));
                             thBrn2.Start();
@@ -400,12 +402,12 @@ namespace LoggerConfig
                         case _ProcessStages.STAGE_3_BEFORE_CONNECT:
                             pictureOK2.Visible = true;
                             m_curTask = _TASK.TASK_WAIT;
-                            AddLine(StageLbl, "Configuring");
+                            AddLine(StageLbl, "Configuring logger properties", true);
                             AtmelPort.DiscardInBuffer();
                             AddRemoveEvent('+');
                             //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
                             ClearReadBuf();
-                            AddText(richTextBox1, "Wait for loggerto connect");
+                            AddText(richTextBox1, "Wait for logger to connect");
                             m_nSeconds = 60;
                             SetTimer(1000);
                             Thread thWait1 = new Thread(new ThreadStart(Wait4Beep));
@@ -418,21 +420,18 @@ namespace LoggerConfig
                             break;
                         case _ProcessStages.STAGE_5_TEST_RF:
                             pictureOK3.Visible = true;
-                            AddLine(StageLbl, "Test RF");
-                            AddRemoveEvent('-');
-                            //AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
-                            //to skip on radio test
-                            //m_curStage++;
-                            //break;
+                            AddLine(StageLbl, "Testing RF", true);
+                            //AddRemoveEvent('-');
+                            
                             m_curTask = _TASK.TASK_WAIT;
-                            m_nSeconds = 30;
+                            m_nSeconds = 15;
                             SetTimer(1000);
                             Thread thRF = new Thread(new ThreadStart(TestRf));
                             thRF.Start();
                             break;
                         case _ProcessStages.STAGE_6_SERVER_CONNECT:
                             pictureOK4.Visible = true;
-                            AddRemoveEvent('+');
+                            //AddRemoveEvent('+'); //after close in prev stage
                             //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
                             if (m_nModemModel == _ModemType.MODEM_SVL)
                             {
@@ -440,11 +439,11 @@ namespace LoggerConfig
                                 break;
                             }
                             m_curTask = _TASK.TASK_WAIT;
-                            AddLine(StageLbl, "Connect to Server ("+ m_nModemModel.ToString() + ")");
+                            AddLine(StageLbl, "Testing cellular connection to server (" + m_nModemModel.ToString() + ")", true);
                             AddText(richTextBox1, "Wait logger to connect server");
                             m_bConnected2Logger = false;
                             // wait max 10 minutes
-                            m_nSeconds = 600;
+                            m_nSeconds = 120;
                             SetTimer(1000);
                             Thread thWait2 = new Thread(new ThreadStart(Wait4Beep));
                             thWait2.Start();
@@ -454,7 +453,7 @@ namespace LoggerConfig
                             {
                                 pictureOK5.Visible = true;
                             }
-                            AddLine(StageLbl, "Set ID");
+                            AddLine(StageLbl, "Setting ID ", true);
                             m_curTask = _TASK.TASK_WAIT;
                             Thread th4 = new Thread(new ThreadStart(FinalSteps));
                             th4.Start();
@@ -472,9 +471,10 @@ namespace LoggerConfig
                
             } while (m_bStopProcess != true);
 
-//            AddText(richTextBox1, "while end");
-
-            if (progressBar1.Value < progressBar1.Maximum)
+            if (bOk)
+                MessageBox.Show("Process completed successfully!", "Logger " + m_sID, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+            //if (progressBar1.Value < progressBar1.Maximum)
             {
                 progressBar1.Value = 0;
                 progressBar1.Refresh();
@@ -507,11 +507,8 @@ namespace LoggerConfig
                         sErrorText = "Process failed...";
                         break;
                 }
-                MessageBox.Show(sErrorText + " (" + m_nError + ")");
-
+                MessageBox.Show(sErrorText + " (" + m_nError + ")", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            if (bOk)
-                MessageBox.Show("Process completed successfully!");
 
 
             // after finish:
@@ -556,7 +553,7 @@ namespace LoggerConfig
             }
             catch (Exception e)
             {
-                AddText(richTextBox1, e.Message);
+                AddText(richTextBox1, "RunProcess Error: " + e.Message);
             }
             return exitCode;
         }
@@ -614,7 +611,7 @@ namespace LoggerConfig
             }
             catch (Exception e)
             {
-                AddText(richTextBox1, e.Message);
+                AddText(richTextBox1, "BurnAtmel Error: "+ e.Message);
                 m_nError = 14;
             }
             return 1;
@@ -667,7 +664,7 @@ namespace LoggerConfig
                 }
                 else
                 {
-                    MessageBox.Show("Cant find J-Link Serial. \nPlease make sure it connected to your PC");
+                    AddText(richTextBox1, "Cant find J-Link Serial. \nPlease make sure it connected to your PC");
                     m_nError = 1;
                     return false;
                 }
@@ -718,9 +715,7 @@ namespace LoggerConfig
                 {
                     MessageBox.Show("Error: " + ex.Message, "Open PORT");
                 }
-                if (!port.IsOpen)
-                    MessageBox.Show("Cant open PORT");
-                else
+                if (port.IsOpen)                
                 {
                     btn.Text = "Close";
                     res = 1;
@@ -812,16 +807,12 @@ namespace LoggerConfig
 
                  AddText(richTextBox2, s);
 
-                //string s = "";
-                //for (int i = 0; i < 20; i++)
-                //    s += Convert.ToChar(buf[i]);
-                //AddText(richTextBox2, s);
-                if (m_curStage == _ProcessStages.STAGE_5_TEST_RF)
+                 if (m_curStage == _ProcessStages.STAGE_5_TEST_RF)
                     m_testEzr = ParseData(ref buf);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                AddText(richTextBox1, "EzrPort_DataReceived Error: " + ex.Message);
             }
         }
 
@@ -912,7 +903,7 @@ namespace LoggerConfig
             //int n = 0;
             do
             {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(3000);
                     AddText(richTextBox2, "Test RF");
                     EzrPort.Write(tmp, 0, 7);
 //                n++;
@@ -923,7 +914,7 @@ namespace LoggerConfig
             // to-do - put back
             //if (!m_testEzr)
             //{
-            m_nError = 30;
+            //m_nError = 30;
             //    m_bStopProcess = true;
             //    return;
             //}
@@ -944,8 +935,6 @@ namespace LoggerConfig
 
         private void OnTimedAckEvent(Object source, System.Timers.ElapsedEventArgs e)
         {
-            //          SetText(statusText, "FAIL");
-            //          SetColor(statusText, Color.Red);
             if (m_bConnected2Logger == false)
                 AddText(richTextBox1, m_nSeconds.ToString() + " OnTimedAckEvent");
 
@@ -1018,7 +1007,8 @@ namespace LoggerConfig
                         else
                             AddText(richTextBox1, "failed set the APN");
                     }
-                    AddText(richTextBox1, "Wrong Version");
+                    else
+                        AddText(richTextBox1, "Wrong Version");
                 }//if ()  
                 if (m_curTask != _TASK.TASK_DO_SOMETHING)
                 {
@@ -1120,7 +1110,7 @@ namespace LoggerConfig
                         break;
                     case 58:    //Rom Version
                         m_sVer = ParseVersion();
-                        AddText(richTextBox1, "version of application is: " + m_sVer);                        
+                        AddText(richTextBox1, "version of application is: " + m_sVer);
                         break;
                     case 65:
                         Buffer.BlockCopy(m_buffer, 8, m_iccid, 0, 20);
@@ -1245,15 +1235,6 @@ namespace LoggerConfig
                 return true;
             Thread.Sleep(500);
             return m_bDataReceived;
-            //bool b = false;
-            //AddText(richTextBox1, "wait 4 answer");
-            //Thread th3 = new Thread(new ThreadStart(Wait4Answer));
-            //th3.Start();
-            //m_nSeconds = 2;
-            //SetTimer(1000);
-            ////b = th3.Join(1000);
-            //AddText(richTextBox1, "data receiverd: " + b.ToString());
-            //return b;
         }
 
         private byte[] StrtoBytes(string str, int len)
@@ -1332,7 +1313,7 @@ namespace LoggerConfig
             }
             catch (Exception ex)
             {
-                AddText(richTextBox1, ex.Message);
+                AddText(richTextBox1, "SendLoggerInfo Error: " +ex.Message);
                 m_nError = 53;
             }
         }
@@ -1380,7 +1361,7 @@ namespace LoggerConfig
                 {
                     m_sID = IDs[3];
                     AddText(richTextBox1, "new ID is " + m_sID);
-                    AddLine(StageLbl, m_sID);
+                    AddLine(StageLbl, m_sID, false);
                     //m_byteID = BitConverter.GetBytes(Convert.ToInt32(IDs[3]));
                     m_nAllocID = n2;
                     //textID.Text = IDs[0];
@@ -1409,7 +1390,7 @@ namespace LoggerConfig
             }
             catch (WebException we)
             {
-                AddText(richTextBox1, we.Message);
+                AddText(richTextBox1, "GenerateID Error: "+ we.Message);
                 m_nError = 51;
             }
             if (!b)
@@ -1420,7 +1401,7 @@ namespace LoggerConfig
         private void button2_Click(object sender, EventArgs e)
         {
             //Talk2Logger(Convert.ToByte(textID.Text), 0);
-            m_nSeconds = 30;
+            m_nSeconds = 15;
             SetTimer(1000);
             EzrPort.DiscardInBuffer();
             m_curStage = _ProcessStages.STAGE_5_TEST_RF;
@@ -1431,9 +1412,9 @@ namespace LoggerConfig
         private void showLogToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (showLogToolStripMenuItem.Checked)
-                this.Size = new Size(778, 374);
+                this.Size = new Size(807, 374);
             else
-                this.Size = new Size(778, 214);
+                this.Size = new Size(807, 214);
         }
 
         private void cleareLogsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1442,11 +1423,6 @@ namespace LoggerConfig
             richTextBox2.Clear();
             richTextBoxLgr.Clear();
         }
-        //void Wait4Answer()
-        //{
-        //    while ((m_bDataReceived == false) && (m_nSeconds > 0)) ;
-        //    AddText(richTextBox1, "finish wait");
-        //}
-
+        
     }
 }

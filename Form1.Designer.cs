@@ -170,17 +170,17 @@
             // 
             this.richTextBox2.Location = new System.Drawing.Point(573, 184);
             this.richTextBox2.Name = "richTextBox2";
-            this.richTextBox2.Size = new System.Drawing.Size(169, 142);
+            this.richTextBox2.Size = new System.Drawing.Size(210, 142);
             this.richTextBox2.TabIndex = 11;
             this.richTextBox2.Text = "";
             // 
             // progressBar1
             // 
             this.progressBar1.Enabled = false;
-            this.progressBar1.Location = new System.Drawing.Point(275, 142);
+            this.progressBar1.Location = new System.Drawing.Point(275, 131);
             this.progressBar1.Maximum = 8;
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(475, 20);
+            this.progressBar1.Size = new System.Drawing.Size(475, 33);
             this.progressBar1.TabIndex = 12;
             // 
             // StageLbl
@@ -199,7 +199,7 @@
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(762, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(791, 24);
             this.menuStrip1.TabIndex = 15;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -231,7 +231,7 @@
             // 
             this.percentageLbl.AutoSize = true;
             this.percentageLbl.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.percentageLbl.Location = new System.Drawing.Point(492, 146);
+            this.percentageLbl.Location = new System.Drawing.Point(502, 141);
             this.percentageLbl.Name = "percentageLbl";
             this.percentageLbl.Size = new System.Drawing.Size(21, 13);
             this.percentageLbl.TabIndex = 16;
@@ -307,7 +307,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(762, 238);
+            this.ClientSize = new System.Drawing.Size(791, 238);
             this.Controls.Add(this.pictureOK6);
             this.Controls.Add(this.pictureOK3);
             this.Controls.Add(this.pictureOK4);
