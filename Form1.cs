@@ -15,7 +15,6 @@ using System.Net;
 using System.Timers;
 using System.Collections.Specialized;
 using System.Threading;
-using System.Linq;
 
 
 
@@ -53,8 +52,9 @@ namespace LoggerConfig
         STAGE_4_FIRST_CONNECT,
         STAGE_5_TEST_RF,
         STAGE_6_SERVER_CONNECT,
+        STAGE_TEST_RESET_BTN,
         STAGE_7_SET_ID,
-        STAGE_8_END,
+        STAGE_8_END,        
     };
 
     public enum _TASK
@@ -92,6 +92,7 @@ namespace LoggerConfig
         byte[]      m_iccid = new byte[20];
         string      m_strICCID;
         int         m_nEventCnt;
+        bool m_bSecondConnect;
         bool m_bReqOK;
         int     m_nError;
         _ModemType   m_nModemModel;
@@ -188,7 +189,7 @@ namespace LoggerConfig
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.Size = new Size(778, 214);
+            this.Size = new Size(807, 228);
             LoadPorts();
             LoadFilesName();
             LoadFactory();
@@ -302,7 +303,10 @@ namespace LoggerConfig
             {
                 AddText(richTextBox1, "wait logger will disconnect");
                 Thread.Sleep(10000);
+                //m_curStage = _ProcessStages.STAGE_3_BEFORE_CONNECT;
+                //m_bSecondConnect = true;
             }
+            //else
             m_curStage++;
             m_curTask = _TASK.TASK_DO_SOMETHING;
         }
@@ -339,6 +343,7 @@ namespace LoggerConfig
             m_bCnctOK = false;
             m_bConnected2Logger = false;
             m_sID = "";
+            m_bSecondConnect = false;
             // to do - add init array:
             //m_byteID[0] = 0;
             m_curStage = _ProcessStages.STAGE_1_BURN_EZR;//STAGE_3_BEFORE_CONNECT
@@ -351,175 +356,229 @@ namespace LoggerConfig
             pictureOK4.Visible = false;
             pictureOK5.Visible = false;
             pictureOK6.Visible = false;
+            pictureOK7.Visible = false;
+        }
+
+        private void ShowOKIcon(PictureBox pb, bool ok)
+        {
+            if (ok)
+                pb.Image = Properties.Resources.OK_img;
+            else
+                pb.Image = Properties.Resources.not_OK_img;
+            pb.Visible = true;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             bool bOk = false;
-            InitAll();
-
-            if (!AtmelPort.IsOpen)
+            try
             {
-                MessageBox.Show("Atmel PORT is closed!");
-                //AddText(richTextBox1, "Atmel PORT is closed!");
-                return;
-            }
-            if (!EzrPort.IsOpen)
-            {
-                MessageBox.Show("EZR PORT is closed!");
-                //AddText(richTextBox1, "EZR PORT is closed!");
-                return;
-            }
-            button1.Enabled = false;
+                InitAll();
 
-            do
-            {
-                this.Invalidate();
-                Application.DoEvents();
-                if (m_curTask == _TASK.TASK_WAIT)
-                    continue;
-
-                if (m_curTask == _TASK.TASK_DO_SOMETHING)
+                if (!AtmelPort.IsOpen)
                 {
-                    progressBar1.Value++;
-                    int x = (progressBar1.Value * 100) / progressBar1.Maximum;
-                    SetText(percentageLbl,x.ToString()+"%");
+                    MessageBox.Show("Atmel PORT is closed!");
+                    //AddText(richTextBox1, "Atmel PORT is closed!");
+                    return;
+                }
+                if (!EzrPort.IsOpen)
+                {
+                    MessageBox.Show("EZR PORT is closed!");
+                    //AddText(richTextBox1, "EZR PORT is closed!");
+                    return;
+                }
+                button1.Enabled = false;
+
+                do
+                {
+                    this.Invalidate();
+                    Application.DoEvents();
+                    if (m_curTask == _TASK.TASK_WAIT)
+                        continue;
+
+                    if (m_curTask == _TASK.TASK_DO_SOMETHING)
+                    {
+                        progressBar1.Value++;
+                        int x = (progressBar1.Value * 100) / progressBar1.Maximum;
+                        SetText(percentageLbl, x.ToString() + "%");
+                        switch (m_curStage)
+                        {
+                            case _ProcessStages.STAGE_1_BURN_EZR:
+                                AddLine(StageLbl, "Burnning EZR", false);
+                                m_curTask = _TASK.TASK_WAIT;
+                                Thread thBrn1 = new Thread(new ThreadStart(RunEzrBurning));
+                                thBrn1.Start();
+                                break;
+                            case _ProcessStages.STAGE_2_BURN_ATMEL:
+                                ShowOKIcon(pictureOK1, true);
+                                AddLine(StageLbl, "Burnning ATMEL", true);
+                                m_curTask = _TASK.TASK_WAIT;
+                                Thread thBrn2 = new Thread(new ThreadStart(RunAtmelBurning));
+                                thBrn2.Start();
+                                break;
+                            case _ProcessStages.STAGE_3_BEFORE_CONNECT:
+                                ShowOKIcon(pictureOK2, true);
+                                m_curTask = _TASK.TASK_WAIT;
+                                if (!m_bSecondConnect)
+                                    //{
+                                    //    MessageBox.Show("Please Press the Reset Button on the logger!");
+                                    //    m_bConnected2Logger = false;
+                                    //    m_bCnctOK = false;
+                                    //    AddText(richTextBox1, "Test the reset button");
+                                    //}
+                                    //else
+                                    AddLine(StageLbl, "Configuring logger properties", true);
+                                AtmelPort.DiscardInBuffer();
+                                AddRemoveEvent('+');
+                                //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+                                ClearReadBuf();
+                                AddText(richTextBox1, "Wait for logger to connect");
+                                m_nSeconds = 60;
+                                SetTimer(1000);
+                                Thread thWait1 = new Thread(new ThreadStart(Wait4Beep));
+                                thWait1.Start();
+                                break;
+                            case _ProcessStages.STAGE_4_FIRST_CONNECT:
+                                m_curTask = _TASK.TASK_WAIT;
+                                Thread th2 = new Thread(new ThreadStart(HelloLogger));
+                                th2.Start();
+                                break;
+                            case _ProcessStages.STAGE_5_TEST_RF:
+                                ShowOKIcon(pictureOK3, true);
+                                AddLine(StageLbl, "Testing RF", true);
+                                //AddRemoveEvent('-');
+
+                                m_curTask = _TASK.TASK_WAIT;
+                                m_nSeconds = 15;
+                                SetTimer(1000);
+                                Thread thRF = new Thread(new ThreadStart(TestRf));
+                                thRF.Start();
+                                break;
+                            case _ProcessStages.STAGE_6_SERVER_CONNECT:
+                                ShowOKIcon(pictureOK4, true);
+                                //AddRemoveEvent('+'); //after close in prev stage
+                                if (m_nModemModel == _ModemType.MODEM_SVL)
+                                {
+                                    m_curStage = _ProcessStages.STAGE_TEST_RESET_BTN; //.STAGE_3_BEFORE_CONNECT;
+                                                                                      //m_bSecondConnect = true;                                
+                                    break;
+                                }
+                                m_curTask = _TASK.TASK_WAIT;
+                                AddLine(StageLbl, "Testing cellular connection to server (" + m_nModemModel.ToString() + ")", true);
+                                AddText(richTextBox1, "Wait logger to connect server");
+                                m_bConnected2Logger = false;
+                                // wait max 10 minutes
+                                m_nSeconds = 120;
+                                SetTimer(1000);
+                                Thread thWait2 = new Thread(new ThreadStart(Wait4Beep));
+                                thWait2.Start();
+                                break;
+                            case _ProcessStages.STAGE_TEST_RESET_BTN:
+                                if (m_nModemModel == _ModemType.MODEM_GE)
+                                {
+                                    ShowOKIcon(pictureOK5, true);
+                                }
+                                AddLine(StageLbl, "Testing Reset Button", true);
+                                m_curStage = _ProcessStages.STAGE_3_BEFORE_CONNECT;
+                                m_bSecondConnect = true;
+                                MessageBox.Show("Please Press the Reset Button on the logger!");
+                                m_bConnected2Logger = false;
+                                m_bCnctOK = false;
+                                AddText(richTextBox1, "Test Reset button");
+                                break;
+                            case _ProcessStages.STAGE_7_SET_ID:
+                                if (m_nModemModel == _ModemType.MODEM_SVL)
+                                    ShowOKIcon(pictureOK5, true);
+                                else
+                                    ShowOKIcon(pictureOK6, true);
+                                AddLine(StageLbl, "Setting ID ", true);
+                                m_curTask = _TASK.TASK_WAIT;
+                                Thread th4 = new Thread(new ThreadStart(FinalSteps));
+                                th4.Start();
+                                break;
+                            case _ProcessStages.STAGE_8_END:
+                                if (m_nModemModel == _ModemType.MODEM_SVL)
+                                    ShowOKIcon(pictureOK6, true);
+                                else
+                                    ShowOKIcon(pictureOK7, true);
+                                bOk = true;
+                                m_bStopProcess = true;
+                                break;
+                        }
+                    }
+
+                } while (m_bStopProcess != true);
+
+                if (bOk)
+                    MessageBox.Show("Process completed successfully!", "Logger " + m_sID, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                else
+                //if (progressBar1.Value < progressBar1.Maximum)
+                {
+                    progressBar1.Value = 0;
+                    progressBar1.Refresh();
+                    AddText(richTextBox1, "Process failed");
+                    string sErrorText = "";
                     switch (m_curStage)
                     {
                         case _ProcessStages.STAGE_1_BURN_EZR:
-                            AddLine(StageLbl, "Burnning EZR", false);
-                            m_curTask = _TASK.TASK_WAIT;
-                            Thread thBrn1 = new Thread(new ThreadStart(RunEzrBurning));
-                            thBrn1.Start();
+                            sErrorText = "Burn EZR failed";
+                            ShowOKIcon(pictureOK1, false);
                             break;
                         case _ProcessStages.STAGE_2_BURN_ATMEL:
-                            pictureOK1.Visible = true;
-                            AddLine(StageLbl, "Burnning ATMEL", true);
-                            m_curTask = _TASK.TASK_WAIT;
-                            Thread thBrn2 = new Thread(new ThreadStart(RunAtmelBurning));
-                            thBrn2.Start();
+                            ShowOKIcon(pictureOK2, false);
+                            sErrorText = "Burn ATMEL failed";
                             break;
                         case _ProcessStages.STAGE_3_BEFORE_CONNECT:
-                            pictureOK2.Visible = true;
-                            m_curTask = _TASK.TASK_WAIT;
-                            AddLine(StageLbl, "Configuring logger properties", true);
-                            AtmelPort.DiscardInBuffer();
-                            AddRemoveEvent('+');
-                            //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
-                            ClearReadBuf();
-                            AddText(richTextBox1, "Wait for logger to connect");
-                            m_nSeconds = 60;
-                            SetTimer(1000);
-                            Thread thWait1 = new Thread(new ThreadStart(Wait4Beep));
-                            thWait1.Start();
+                            ShowOKIcon(pictureOK3, false);
+                            sErrorText = "Could not get logger parameters";
                             break;
                         case _ProcessStages.STAGE_4_FIRST_CONNECT:
-                            m_curTask = _TASK.TASK_WAIT;
-                            Thread th2 = new Thread(new ThreadStart(HelloLogger));
-                            th2.Start();
+                            ShowOKIcon(pictureOK3, false);
+                            sErrorText = "Error during configuring logger";
                             break;
                         case _ProcessStages.STAGE_5_TEST_RF:
-                            pictureOK3.Visible = true;
-                            AddLine(StageLbl, "Testing RF", true);
-                            //AddRemoveEvent('-');
-                            
-                            m_curTask = _TASK.TASK_WAIT;
-                            m_nSeconds = 15;
-                            SetTimer(1000);
-                            Thread thRF = new Thread(new ThreadStart(TestRf));
-                            thRF.Start();
+                            ShowOKIcon(pictureOK4, false);
+                            sErrorText = "Test RF failed";
                             break;
                         case _ProcessStages.STAGE_6_SERVER_CONNECT:
-                            pictureOK4.Visible = true;
-                            //AddRemoveEvent('+'); //after close in prev stage
-                            //AtmelPort.DataReceived += new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
-                            if (m_nModemModel == _ModemType.MODEM_SVL)
-                            {
-                                m_curStage = _ProcessStages.STAGE_7_SET_ID;
-                                break;
-                            }
-                            m_curTask = _TASK.TASK_WAIT;
-                            AddLine(StageLbl, "Testing cellular connection to server (" + m_nModemModel.ToString() + ")", true);
-                            AddText(richTextBox1, "Wait logger to connect server");
-                            m_bConnected2Logger = false;
-                            // wait max 10 minutes
-                            m_nSeconds = 120;
-                            SetTimer(1000);
-                            Thread thWait2 = new Thread(new ThreadStart(Wait4Beep));
-                            thWait2.Start();
+                            ShowOKIcon(pictureOK5, false);
+                            sErrorText = "Failed connecting to server";
                             break;
-                        case _ProcessStages.STAGE_7_SET_ID:
-                            if (m_nModemModel == _ModemType.MODEM_GE)
-                            {
-                                pictureOK5.Visible = true;
-                            }
-                            AddLine(StageLbl, "Setting ID ", true);
-                            m_curTask = _TASK.TASK_WAIT;
-                            Thread th4 = new Thread(new ThreadStart(FinalSteps));
-                            th4.Start();
-                            break;
-                        case _ProcessStages.STAGE_8_END:
+                        case _ProcessStages.STAGE_TEST_RESET_BTN:
                             if (m_nModemModel == _ModemType.MODEM_SVL)
-                                pictureOK5.Visible = true;
+                                ShowOKIcon(pictureOK5, false);
                             else
-                                pictureOK6.Visible = true;
-                            bOk = true;
-                            m_bStopProcess = true;
+                                ShowOKIcon(pictureOK6, false);
+                            sErrorText = "Failed testing the reset button";
+                            break;                            
+                        case _ProcessStages.STAGE_7_SET_ID:
+                            if (m_nModemModel == _ModemType.MODEM_SVL)
+                                ShowOKIcon(pictureOK6, false);
+                            else
+                                ShowOKIcon(pictureOK7, false);
+                            sErrorText = "Failed setting the ID";
+                            break;
+                        default:
+                            sErrorText = "Process failed...";
                             break;
                     }
+                    MessageBox.Show(sErrorText + " (" + m_nError + ")", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-               
-            } while (m_bStopProcess != true);
 
-            if (bOk)
-                MessageBox.Show("Process completed successfully!", "Logger " + m_sID, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            else
-            //if (progressBar1.Value < progressBar1.Maximum)
-            {
-                progressBar1.Value = 0;
-                progressBar1.Refresh();
-                AddText(richTextBox1, "Process failed");
-                string sErrorText = "";
-                switch (m_curStage)
-                {
-                    case _ProcessStages.STAGE_1_BURN_EZR:
-                        sErrorText = "Burn EZR failed";
-                        break;
-                    case _ProcessStages.STAGE_2_BURN_ATMEL:
-                        sErrorText = "Burn ATMEL failed";
-                        break;
-                    case _ProcessStages.STAGE_3_BEFORE_CONNECT:
-                        sErrorText = "Could not get logger parameters";
-                        break;
-                    case _ProcessStages.STAGE_4_FIRST_CONNECT:
-                        sErrorText = "Error during configuring logger";
-                        break;
-                    case _ProcessStages.STAGE_5_TEST_RF:
-                        sErrorText = "Test RF failed";
-                        break;
-                    case _ProcessStages.STAGE_6_SERVER_CONNECT:
-                        sErrorText = "Failed connecting to server";
-                        break;
-                    case _ProcessStages.STAGE_7_SET_ID:
-                        sErrorText = "Failed setting the ID";
-                        break;
-                    default:
-                        sErrorText = "Process failed...";
-                        break;
-                }
-                MessageBox.Show(sErrorText + " (" + m_nError + ")", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // after finish:
+                AddRemoveEvent('-');
+                //AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
+                //EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+                button1.Enabled = true;
+                m_bConnected2Logger = false;
+                for (int i = 0; i < 4; i++)
+                    m_byteID[i] = 0;
             }
-
-
-            // after finish:
-            AddRemoveEvent('-');
-            //AtmelPort.DataReceived -= new SerialDataReceivedEventHandler(AtmelPort_DataReceived);
-            //EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
-            button1.Enabled = true;
-            m_bConnected2Logger = false;
-            for (int i = 0; i < 4; i++)
-                m_byteID[i] = 0;
-
+            catch (Exception er)
+            {
+                AddText(richTextBox1, "Main Loop Error:" + er.Message);
+            }
         }
 
         private int RunProcess(Process p, string arg)
@@ -978,6 +1037,13 @@ namespace LoggerConfig
                 AddText(richTextBox1, "Connect to Logger");
                 if (Talk2Logger(0, 0))
                 {
+                    if (m_bSecondConnect)
+                    {
+                        m_curTask = _TASK.TASK_DO_SOMETHING;
+                        m_curStage = _ProcessStages.STAGE_7_SET_ID;
+                        return;
+                    }
+
                     AddText(richTextBox1, "Get SW version");
                     Talk2Logger(58, 0);       //get software version
                     if (m_sVer == m_sOfficialVer)                        
@@ -1414,7 +1480,7 @@ namespace LoggerConfig
             if (showLogToolStripMenuItem.Checked)
                 this.Size = new Size(807, 374);
             else
-                this.Size = new Size(807, 214);
+                this.Size = new Size(807, 228);
         }
 
         private void cleareLogsToolStripMenuItem_Click(object sender, EventArgs e)

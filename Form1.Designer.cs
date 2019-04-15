@@ -50,24 +50,26 @@
             this.showLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cleareLogsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.percentageLbl = new System.Windows.Forms.Label();
-            this.pictureOK1 = new System.Windows.Forms.PictureBox();
-            this.pictureOK2 = new System.Windows.Forms.PictureBox();
-            this.pictureOK5 = new System.Windows.Forms.PictureBox();
-            this.pictureOK4 = new System.Windows.Forms.PictureBox();
-            this.pictureOK3 = new System.Windows.Forms.PictureBox();
             this.pictureOK6 = new System.Windows.Forms.PictureBox();
+            this.pictureOK3 = new System.Windows.Forms.PictureBox();
+            this.pictureOK4 = new System.Windows.Forms.PictureBox();
+            this.pictureOK5 = new System.Windows.Forms.PictureBox();
+            this.pictureOK2 = new System.Windows.Forms.PictureBox();
+            this.pictureOK1 = new System.Windows.Forms.PictureBox();
+            this.pictureOK7 = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK6)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK7)).BeginInit();
             this.SuspendLayout();
             // 
             // richTextBox1
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(15, 184);
+            this.richTextBox1.Location = new System.Drawing.Point(15, 189);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.Size = new System.Drawing.Size(254, 138);
             this.richTextBox1.TabIndex = 0;
@@ -119,11 +121,11 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(77, 129);
+            this.button1.Location = new System.Drawing.Point(77, 145);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(189, 34);
             this.button1.TabIndex = 5;
-            this.button1.Text = "Start New Logger";
+            this.button1.Text = "Start Configure New Logger";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -149,7 +151,7 @@
             // 
             // richTextBoxLgr
             // 
-            this.richTextBoxLgr.Location = new System.Drawing.Point(275, 184);
+            this.richTextBoxLgr.Location = new System.Drawing.Point(275, 189);
             this.richTextBoxLgr.Name = "richTextBoxLgr";
             this.richTextBoxLgr.Size = new System.Drawing.Size(292, 142);
             this.richTextBoxLgr.TabIndex = 9;
@@ -157,7 +159,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(14, 131);
+            this.button2.Location = new System.Drawing.Point(12, 146);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(57, 32);
             this.button2.TabIndex = 10;
@@ -168,7 +170,7 @@
             // 
             // richTextBox2
             // 
-            this.richTextBox2.Location = new System.Drawing.Point(573, 184);
+            this.richTextBox2.Location = new System.Drawing.Point(573, 189);
             this.richTextBox2.Name = "richTextBox2";
             this.richTextBox2.Size = new System.Drawing.Size(210, 142);
             this.richTextBox2.TabIndex = 11;
@@ -177,10 +179,10 @@
             // progressBar1
             // 
             this.progressBar1.Enabled = false;
-            this.progressBar1.Location = new System.Drawing.Point(275, 131);
-            this.progressBar1.Maximum = 8;
+            this.progressBar1.Location = new System.Drawing.Point(275, 147);
+            this.progressBar1.Maximum = 11;
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(475, 33);
+            this.progressBar1.Size = new System.Drawing.Size(504, 33);
             this.progressBar1.TabIndex = 12;
             // 
             // StageLbl
@@ -231,66 +233,11 @@
             // 
             this.percentageLbl.AutoSize = true;
             this.percentageLbl.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.percentageLbl.Location = new System.Drawing.Point(502, 141);
+            this.percentageLbl.Location = new System.Drawing.Point(517, 157);
             this.percentageLbl.Name = "percentageLbl";
             this.percentageLbl.Size = new System.Drawing.Size(21, 13);
             this.percentageLbl.TabIndex = 16;
             this.percentageLbl.Text = "0%";
-            // 
-            // pictureOK1
-            // 
-            this.pictureOK1.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK1.Image")));
-            this.pictureOK1.Location = new System.Drawing.Point(390, 26);
-            this.pictureOK1.Name = "pictureOK1";
-            this.pictureOK1.Size = new System.Drawing.Size(15, 15);
-            this.pictureOK1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureOK1.TabIndex = 17;
-            this.pictureOK1.TabStop = false;
-            this.pictureOK1.Visible = false;
-            // 
-            // pictureOK2
-            // 
-            this.pictureOK2.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK2.Image")));
-            this.pictureOK2.Location = new System.Drawing.Point(390, 42);
-            this.pictureOK2.Name = "pictureOK2";
-            this.pictureOK2.Size = new System.Drawing.Size(15, 15);
-            this.pictureOK2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureOK2.TabIndex = 18;
-            this.pictureOK2.TabStop = false;
-            this.pictureOK2.Visible = false;
-            // 
-            // pictureOK5
-            // 
-            this.pictureOK5.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK5.Image")));
-            this.pictureOK5.Location = new System.Drawing.Point(390, 92);
-            this.pictureOK5.Name = "pictureOK5";
-            this.pictureOK5.Size = new System.Drawing.Size(15, 15);
-            this.pictureOK5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureOK5.TabIndex = 19;
-            this.pictureOK5.TabStop = false;
-            this.pictureOK5.Visible = false;
-            // 
-            // pictureOK4
-            // 
-            this.pictureOK4.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK4.Image")));
-            this.pictureOK4.Location = new System.Drawing.Point(390, 75);
-            this.pictureOK4.Name = "pictureOK4";
-            this.pictureOK4.Size = new System.Drawing.Size(15, 15);
-            this.pictureOK4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureOK4.TabIndex = 20;
-            this.pictureOK4.TabStop = false;
-            this.pictureOK4.Visible = false;
-            // 
-            // pictureOK3
-            // 
-            this.pictureOK3.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK3.Image")));
-            this.pictureOK3.Location = new System.Drawing.Point(390, 58);
-            this.pictureOK3.Name = "pictureOK3";
-            this.pictureOK3.Size = new System.Drawing.Size(15, 15);
-            this.pictureOK3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureOK3.TabIndex = 21;
-            this.pictureOK3.TabStop = false;
-            this.pictureOK3.Visible = false;
             // 
             // pictureOK6
             // 
@@ -303,11 +250,78 @@
             this.pictureOK6.TabStop = false;
             this.pictureOK6.Visible = false;
             // 
+            // pictureOK3
+            // 
+            this.pictureOK3.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK3.Image")));
+            this.pictureOK3.Location = new System.Drawing.Point(390, 58);
+            this.pictureOK3.Name = "pictureOK3";
+            this.pictureOK3.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK3.TabIndex = 21;
+            this.pictureOK3.TabStop = false;
+            this.pictureOK3.Visible = false;
+            // 
+            // pictureOK4
+            // 
+            this.pictureOK4.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK4.Image")));
+            this.pictureOK4.Location = new System.Drawing.Point(390, 75);
+            this.pictureOK4.Name = "pictureOK4";
+            this.pictureOK4.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK4.TabIndex = 20;
+            this.pictureOK4.TabStop = false;
+            this.pictureOK4.Visible = false;
+            // 
+            // pictureOK5
+            // 
+            this.pictureOK5.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK5.Image")));
+            this.pictureOK5.Location = new System.Drawing.Point(390, 92);
+            this.pictureOK5.Name = "pictureOK5";
+            this.pictureOK5.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK5.TabIndex = 19;
+            this.pictureOK5.TabStop = false;
+            this.pictureOK5.Visible = false;
+            // 
+            // pictureOK2
+            // 
+            this.pictureOK2.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK2.Image")));
+            this.pictureOK2.Location = new System.Drawing.Point(390, 42);
+            this.pictureOK2.Name = "pictureOK2";
+            this.pictureOK2.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK2.TabIndex = 18;
+            this.pictureOK2.TabStop = false;
+            this.pictureOK2.Visible = false;
+            // 
+            // pictureOK1
+            // 
+            this.pictureOK1.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK1.Image")));
+            this.pictureOK1.Location = new System.Drawing.Point(390, 26);
+            this.pictureOK1.Name = "pictureOK1";
+            this.pictureOK1.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK1.TabIndex = 17;
+            this.pictureOK1.TabStop = false;
+            this.pictureOK1.Visible = false;
+            // 
+            // pictureOK7
+            // 
+            this.pictureOK7.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK7.Image")));
+            this.pictureOK7.Location = new System.Drawing.Point(390, 126);
+            this.pictureOK7.Name = "pictureOK7";
+            this.pictureOK7.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK7.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK7.TabIndex = 23;
+            this.pictureOK7.TabStop = false;
+            this.pictureOK7.Visible = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(791, 238);
+            this.ClientSize = new System.Drawing.Size(791, 258);
+            this.Controls.Add(this.pictureOK7);
             this.Controls.Add(this.pictureOK6);
             this.Controls.Add(this.pictureOK3);
             this.Controls.Add(this.pictureOK4);
@@ -332,16 +346,18 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "LoggerConfig";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK6)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK7)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -375,6 +391,7 @@
         private System.Windows.Forms.PictureBox pictureOK4;
         private System.Windows.Forms.PictureBox pictureOK3;
         private System.Windows.Forms.PictureBox pictureOK6;
+        private System.Windows.Forms.PictureBox pictureOK7;
     }
 }
 

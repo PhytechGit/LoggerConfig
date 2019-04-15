@@ -83,6 +83,26 @@ namespace LoggerConfig.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap not_OK_img {
+            get {
+                object obj = ResourceManager.GetObject("not_OK_img", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap OK_img {
+            get {
+                object obj = ResourceManager.GetObject("OK_img", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap rcmmark {
             get {
                 object obj = ResourceManager.GetObject("rcmmark", resourceCulture);
