@@ -89,7 +89,8 @@ namespace LoggerConfig
         string      m_sEzrVer;
         string      m_sAPN;
         bool        m_bAPN_OK;
-        string      m_sOfficialVer;
+        string      m_sAtmelOfficialVer;
+        string      m_sEZROfficialVer;
         string      m_sBtr;
         int         m_nSeconds;
         byte[]      m_iccid = new byte[20];
@@ -168,7 +169,9 @@ namespace LoggerConfig
         //get SW latest version from staging server
         private void LoadVersions()
         {
-            string uriStagingString = @"https://phytoweb-staging.herokuapp.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";
+            string uriAtmelStagingString = @"http://qa-server.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+            string uriEZRStagingString = @"http://qa-server.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+            //https://phytoweb-staging.herokuapp.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";
             //string uriString = @"http://plantbeat.phytech.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";            
             try
             {
@@ -179,10 +182,12 @@ namespace LoggerConfig
                 //if (DbgMode == 1)
                 //    s = client.DownloadString(uriStagingString);
                 //else
-                m_sOfficialVer = client.DownloadString(/*uriString*/uriStagingString);//  .UploadValues(uriString, myNameValueCollection);
-                
+                m_sAtmelOfficialVer = client.DownloadString(/*uriString*/uriAtmelStagingString);//  .UploadValues(uriString, myNameValueCollection);
+                m_sEZROfficialVer = client.DownloadString(/*uriString*/uriEZRStagingString);
+                AddText(richTextBox1, "Atmel Official" + m_sAtmelOfficialVer);
+                AddText(richTextBox1, "EZR Official" + uriEZRStagingString);
                 //m_sSWVer = s;
-          //      txtOficialVer.Text = m_sSWVer;
+                //      txtOficialVer.Text = m_sSWVer;
             }
             catch (WebException we)
             {
@@ -391,6 +396,23 @@ namespace LoggerConfig
                     MessageBox.Show("EZR PORT is closed!");
                     //AddText(richTextBox1, "EZR PORT is closed!");
                     return;
+                }
+                if (dontGenerateNewToolStripMenuItem.Checked)
+                {
+                    try
+                    {
+                        int x = Convert.ToInt32(textBoxID.Text);
+                        if (x < 500000)
+                        {
+                            MessageBox.Show("You must insert legal ID");
+                            return;
+                        }
+                    }
+                    catch (Exception )
+                    {
+                        MessageBox.Show("You must insert legal ID");
+                        return;
+                    }                    
                 }
                 button1.Enabled = false;
 
@@ -924,6 +946,12 @@ namespace LoggerConfig
                 AddText(richTextBox2, S);
                 m_sEzrVer = Convert.ToChar(buf[7]) + "." + Convert.ToInt16(buf[8]) + "." + Convert.ToInt16(buf[9]) + "." + Convert.ToInt16(buf[10]);
                 S = "\r\nReceiver version: " + m_sEzrVer;
+                if (m_sEZROfficialVer != m_sEzrVer)
+                {
+                    AddText(richTextBox2, "EZR wrong version");
+                    return false;
+                }
+
                 //S += "\r\n";
                 AddText(richTextBox2, S);
                 if ((n1 < -7) || (n2 < -7))
@@ -1080,7 +1108,7 @@ namespace LoggerConfig
 
                     AddText(richTextBox1, "Get SW version");
                     Talk2Logger(58, 0);       //get software version
-                    if (m_sAtmelVer == m_sOfficialVer)                        
+                    if (m_sAtmelVer == m_sAtmelOfficialVer)                        
                     {
                         AddText(richTextBox1, "Get Battery");
                         Talk2Logger(55, 0);       //get battery
@@ -1434,6 +1462,11 @@ namespace LoggerConfig
 
         private bool GenerateID()
         {
+            if (dontGenerateNewToolStripMenuItem.Checked)
+            {
+                m_sID = textBoxID.Text;
+                return true;
+            }
             bool b = false;
 
             //            string uriString = "http://46.101.79.233:3001/activeadmin/sensors_allocations.json?user_id=1580&api_token=nz-nLBTpvQL4N-3GTZBz";
@@ -1531,6 +1564,34 @@ namespace LoggerConfig
             richTextBox2.Clear();
             richTextBoxLgr.Clear();
         }
-        
+
+        private void showOfficialVersionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Atmel Official Version: " + m_sAtmelOfficialVer + Environment.NewLine + "EZR Official Version: " + m_sEZROfficialVer, "SW Versions", MessageBoxButtons.OK);
+        }
+
+        private void factoryNameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Factory name: " + m_sFactory, "Factory",  MessageBoxButtons.OK);
+        }
+
+        private void filesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string s = "Atmel BL: " + files2Burn[(int)_FileType.TYPE_ATMEL_BL] + Environment.NewLine;
+            s += "Atmel APP: " + files2Burn[(int)_FileType.TYPE_ATMEL_APP] + Environment.NewLine;
+            s += "Atmel EEP: " + files2Burn[(int)_FileType.TYPE_ATMEL_EEP]+ Environment.NewLine;
+            s += "Ezr BL: " + files2Burn[(int)_FileType.TYPE_EZR_BL] + Environment.NewLine;
+            s += "Ezr App: " + files2Burn[(int)_FileType.TYPE_EZR_APP] + Environment.NewLine;
+            
+            MessageBox.Show(s, "File to Burn", MessageBoxButtons.OK);
+
+        }
+
+        private void dontGenerateNewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bool b = dontGenerateNewToolStripMenuItem.Checked;
+            labelID.Visible = b;
+            textBoxID.Visible = b;
+        }
     }
 }
