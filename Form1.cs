@@ -169,8 +169,8 @@ namespace LoggerConfig
         //get SW latest version from staging server
         private void LoadVersions()
         {
-            string uriAtmelStagingString = @"http://qa-server.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
-            string uriEZRStagingString = @"http://qa-server.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+            string uriAtmelStagingString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+            string uriEZRStagingString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
             //https://phytoweb-staging.herokuapp.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";
             //string uriString = @"http://plantbeat.phytech.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";            
             try
@@ -1572,7 +1572,7 @@ namespace LoggerConfig
 
         private void factoryNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Factory name: " + m_sFactory, "Factory",  MessageBoxButtons.OK);
+            MessageBox.Show(m_sFactory, "Factory Name",  MessageBoxButtons.OK);
         }
 
         private void filesToolStripMenuItem_Click(object sender, EventArgs e)
