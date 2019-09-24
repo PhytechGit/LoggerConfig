@@ -35,6 +35,7 @@ namespace LoggerConfig
         public _ModemType m_mdmType;
         public string m_ICCID;
         public string m_APN;
+        public int m_canConnect;
     };
 
     public enum _ModemType
@@ -96,9 +97,10 @@ namespace LoggerConfig
         byte[]      m_iccid = new byte[20];
         string      m_strICCID;
         int         m_nEventCnt;
-        bool m_bSecondConnect;
-        bool m_bReqOK;
-        int     m_nError;
+        bool        m_bSecondConnect;
+        bool        m_bReqOK;
+        int         m_nError;
+        bool        m_bCanConnect;
         _ModemType   m_nModemModel;
         _ProcessStages m_curStage;
         _TASK       m_curTask;
@@ -152,7 +154,7 @@ namespace LoggerConfig
             {
                 string line = sr.ReadLine();
                 string[] sarr = line.Split(',');
-                APNArray.Add(new APN_Types { m_mdmType = (_ModemType)Convert.ToInt16(sarr[0]), m_ICCID = sarr[1], m_APN = sarr[2] });
+                APNArray.Add(new APN_Types { m_mdmType = (_ModemType)Convert.ToInt16(sarr[0]), m_ICCID = sarr[1], m_APN = sarr[2], m_canConnect = Convert.ToInt16(sarr[3]) });
             }
         }
 
@@ -350,6 +352,7 @@ namespace LoggerConfig
             m_bAPN_OK = false;
             m_bCnctOK = false;
             m_bConnected2Logger = false;
+            m_bCanConnect = true;
             m_sID = "";
             m_sAPN = "";
             StageLbl.Text = "";
@@ -484,7 +487,7 @@ namespace LoggerConfig
                             case _ProcessStages.STAGE_6_SERVER_CONNECT:
                                 ShowOKIcon(pictureOK4, true);
                                 //AddRemoveEvent('+'); //after close in prev stage
-                                if (m_nModemModel == _ModemType.MODEM_SVL)
+                                if (/*m_nModemModel == _ModemType.MODEM_SVL*/!m_bCanConnect)
                                 {
                                     m_curStage = _ProcessStages.STAGE_TEST_RESET_BTN; //.STAGE_3_BEFORE_CONNECT;
                                                                                       //m_bSecondConnect = true;                                
@@ -495,7 +498,7 @@ namespace LoggerConfig
                                 AddText(richTextBox1, "Wait logger to connect server");
                                 m_bConnected2Logger = false;
                                 // wait max 10 minutes
-                                m_nSeconds = 120;
+                                m_nSeconds = 150;
                                 SetTimer(1000);
                                 Thread thWait2 = new Thread(new ThreadStart(Wait4Beep));
                                 thWait2.Start();
@@ -514,7 +517,7 @@ namespace LoggerConfig
                                 AddText(richTextBox1, "Test Reset button");
                                 break;
                             case _ProcessStages.STAGE_7_SET_ID:
-                                if (m_nModemModel == _ModemType.MODEM_SVL)
+                                if (/*m_nModemModel == _ModemType.MODEM_SVL*/!m_bCanConnect)
                                     ShowOKIcon(pictureOK5, true);
                                 else
                                     ShowOKIcon(pictureOK6, true);
@@ -524,7 +527,7 @@ namespace LoggerConfig
                                 th4.Start();
                                 break;
                             case _ProcessStages.STAGE_8_END:
-                                if (m_nModemModel == _ModemType.MODEM_SVL)
+                                if (/*m_nModemModel == _ModemType.MODEM_SVL*/!m_bCanConnect)
                                     ShowOKIcon(pictureOK6, true);
                                 else
                                     ShowOKIcon(pictureOK7, true);
@@ -564,7 +567,7 @@ namespace LoggerConfig
                                 break;
                             }
                             // if failed because test reset
-                            if (m_nModemModel == _ModemType.MODEM_SVL)
+                            if (/*m_nModemModel == _ModemType.MODEM_SVL*/!m_bCanConnect)
                                 ShowOKIcon(pictureOK5, false);
                             else
                                 ShowOKIcon(pictureOK6, false);
@@ -577,7 +580,7 @@ namespace LoggerConfig
                                 sErrorText = "Error during configuring logger";
                                 break;
                             }
-                            if (m_nModemModel == _ModemType.MODEM_SVL)
+                            if (/*m_nModemModel == _ModemType.MODEM_SVL*/!m_bCanConnect)
                                 ShowOKIcon(pictureOK5, false);
                             else
                                 ShowOKIcon(pictureOK6, false);
@@ -592,7 +595,7 @@ namespace LoggerConfig
                             sErrorText = "Failed connecting to server";
                             break;                                                 
                         case _ProcessStages.STAGE_7_SET_ID:
-                            if (m_nModemModel == _ModemType.MODEM_SVL)
+                            if (/*m_nModemModel == _ModemType.MODEM_SVL*/!m_bCanConnect)
                                 ShowOKIcon(pictureOK6, false);
                             else
                                 ShowOKIcon(pictureOK7, false);
@@ -684,26 +687,32 @@ namespace LoggerConfig
                 p.StartInfo.CreateNoWindow = true;
                 p.EnableRaisingEvents = true;
 
-                AddText(richTextBox1, "Program Fuse:");
-                if (RunProcess(p, "-t avrispmk2 -i isp -d atmega644pa -cl 125khz write -fs --values EFD8FF --verify") == 0)
+                AddText(richTextBox1, "Erase:");
+                if (RunProcess(p, "-t atmelice -i isp -d atmega644pa chiperase") == 0) //avrispmk2
                 {
-                    AddText(richTextBox1, "Program Bootloader:");
-                    if (RunProcess(p, string.Format("-t avrispmk2 -i isp -d atmega644pa -cl 125khz program -fl -f {0} --format elf --verify -c ", files2Burn[(int)_FileType.TYPE_ATMEL_BL])) == 0)
+                    AddText(richTextBox1, "Program Fuse:");
+                    if (RunProcess(p, "-t atmelice -i isp -d atmega644pa -cl 125khz write -fs --values EFD8FF --verify") == 0) //avrispmk2
                     {
-                        AddText(richTextBox1, "Program Flash:");
-                        if (RunProcess(p, string.Format("-t avrispmk2 -i isp -d atmega644pa -cl 125khz program -fl -f {0} --format bin --verify ", files2Burn[(int)_FileType.TYPE_ATMEL_APP])) == 0)
+                        AddText(richTextBox1, "Program Bootloader:");
+                        if (RunProcess(p, string.Format("-t atmelice -i isp -d atmega644pa -cl 125khz program -fl -f {0} --format elf --verify ", files2Burn[(int)_FileType.TYPE_ATMEL_BL])) == 0)
                         {
-                            AddText(richTextBox1, "Program EEprom:");
-                            int b = RunProcess(p, string.Format("-t avrispmk2 -i isp -d atmega644pa -cl 125khz program -ee -f {0} --format hex --verify", files2Burn[(int)_FileType.TYPE_ATMEL_EEP]));
-                            if (b == 0)
-                                m_nError = 13;
-                            return b;
+                            AddText(richTextBox1, "Program Flash:");
+                            if (RunProcess(p, string.Format("-t atmelice -i isp -d atmega644pa -cl 125khz program -fl -f {0} --format bin --verify ", files2Burn[(int)_FileType.TYPE_ATMEL_APP])) == 0)
+                            {
+                                AddText(richTextBox1, "Program EEprom:");
+                                int b = RunProcess(p, string.Format("-t atmelice -i isp -d atmega644pa -cl 125khz program -ee -f {0} --format hex --verify", files2Burn[(int)_FileType.TYPE_ATMEL_EEP]));
+                                if (b != 0)
+                                    m_nError = 13;
+                                return b;
+                            }
+                            else
+                                m_nError = 12;
                         }
                         else
-                            m_nError = 12;
+                            m_nError = 11;
                     }
                     else
-                        m_nError = 11;
+                        m_nError = 10;
                 }
                 else
                     m_nError = 10;
@@ -725,6 +734,7 @@ namespace LoggerConfig
 
         private bool BurnEZR()
         {
+            int n;
             //brnEzrBtn.BackColor = Color.Orange;
             // programs path
             string ezr32commanderpath = "C:\\phytechburn\\SimplicityCommander\\Simplicity Commander\\";
@@ -778,13 +788,16 @@ namespace LoggerConfig
                 s1 = p.StandardOutput.ReadToEnd();
                 AddText(richTextBox1, s1);
                 p.WaitForExit();
-                if (!s1.Contains("ERROR"))//if got this message means succeedded
+                n = p.ExitCode;
+                if (n == 0)//(!s1.Contains("ERROR"))//if got this message means succeedded
                 {
                     return true;
                     //brnEzrBtn.BackColor = Color.Green;
                     //brnEzrBtn.Text = "PASS";
                     //brnEzrBtn.ForeColor = Color.White;
                 }
+                else
+                    m_nError = 3;
             }
             catch (Exception e)
             {
@@ -1122,7 +1135,7 @@ namespace LoggerConfig
                         {
                             if (m_bReqOK)
                             {
-                                if (m_nModemModel != _ModemType.MODEM_SVL)
+                                if (/*m_nModemModel != _ModemType.MODEM_SVL*/m_bCanConnect)
                                 {
                                     // send to logger Task of connecting to server 
                                     Talk2Logger(67, 1);
@@ -1340,6 +1353,7 @@ namespace LoggerConfig
                                     Buffer.BlockCopy(StrtoBytes(apn.m_APN, 32), 0, m_buffer, 9, 32);
                                     m_sAPN = apn.m_APN + '#';
                                     bMatchIccid = true;
+                                    m_bCanConnect = (apn.m_canConnect == 1);
                                 }
                             }
                         if (bMatchIccid == false)
@@ -1456,7 +1470,7 @@ namespace LoggerConfig
 
         private void Print(/*object sender, EventArgs e*/)
         {
-            new Print(m_sID, m_nModemModel, LoggerConfig.Properties.Resources.BnWLogo);
+            new Print(m_sID, m_nModemModel.ToString(), LoggerConfig.Properties.Resources.BnWLogo);
             AddText(richTextBox1, "Sticker Printed");
         }
 
@@ -1542,12 +1556,15 @@ namespace LoggerConfig
         private void button2_Click(object sender, EventArgs e)
         {
             //Talk2Logger(Convert.ToByte(textID.Text), 0);
-            m_nSeconds = 60;
+            /*m_nSeconds = 60;
             SetTimer(1000);
             EzrPort.DiscardInBuffer();
             m_curStage = _ProcessStages.STAGE_5_TEST_RF;
             Thread thRF = new Thread(new ThreadStart(TestRf));
-            thRF.Start();
+            thRF.Start();*/
+            //GenerateID();
+            new Print("123456", m_nModemModel.ToString(), LoggerConfig.Properties.Resources.BnWLogo);
+            AddText(richTextBox1, "Sticker Printed");
         }
 
         private void showLogToolStripMenuItem_Click(object sender, EventArgs e)

@@ -17,18 +17,18 @@ public class Print
     Image s_imgLogo;
     String sTitle;
     bool bFirstSticker;
-    _ModemType m_mdm;
+    string sMdm;
 
     public Print()
     {
         Printing();
     }
 
-    public Print(string s, _ModemType mdm,/* Image bc, Image QR,*/ Image lg)
+    public Print(string s, string mdm,/* Image bc, Image QR,*/ Image lg)
     {
         sTitle = s;
         s_imgLogo = lg;
-        m_mdm = mdm;
+        sMdm = mdm;
         Printing();
     }
     // The PrintPage event is raised for each page to be printed.
@@ -60,7 +60,7 @@ public class Print
         }
         ///////////////////
         ev.Graphics.DrawString(s1, printTitleFont, Brushes.Black, rightSticker, y, new StringFormat());
-        ev.Graphics.DrawString(m_mdm.ToString(), printTitleFont, Brushes.Black, rightSticker, y + 45, new StringFormat());
+        ev.Graphics.DrawString(sMdm, printTitleFont, Brushes.Black, rightSticker, y + 47, new StringFormat());
         ev.Graphics.DrawString(s3, printXLFont, Brushes.Black, rightSticker, y + 65, new StringFormat());
         ev.Graphics.DrawImage(s_imgLogo, rightSticker + 87, 0, s_imgLogo.Width, s_imgLogo.Height);
         ev.Graphics.DrawImage(LoggerConfig.Properties.Resources.rcmmark, rightSticker + 100, y + 48, 20, 20);
@@ -102,11 +102,11 @@ public class Print
     {
         try
         {
-            //PrintDialog printDialog1 = new PrintDialog();
-            //printDialog1.PrinterSettings.PrinterName = "Godex G530";
-            //DialogResult result = printDialog1.ShowDialog();
-            //if (result != DialogResult.OK)
-            //    return;
+        //    PrintDialog printDialog1 = new PrintDialog();
+        //    printDialog1.PrinterSettings.PrinterName = "Godex G530";
+        //    DialogResult result = printDialog1.ShowDialog();
+        //    if (result != DialogResult.OK)
+        //        return;
 
             //try 
             //{
@@ -123,7 +123,7 @@ public class Print
 
             pd.PrinterSettings.PrinterName = "Godex G530";//printDialog1.PrinterSettings.PrinterName; //(String) 
 
-            pd.DefaultPageSettings.PaperSize = new PaperSize("Logger_Sticker", 290, 160);// (each cm is ~36 points)
+        pd.DefaultPageSettings.PaperSize = new PaperSize("Logger_Sticker", 290, 160);// (each cm is ~36 points)
 
             // Print the document.
             bFirstSticker = true;
