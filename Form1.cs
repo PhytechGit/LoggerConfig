@@ -45,6 +45,12 @@ namespace LoggerConfig
         MODEM_SVL = 2,        
     };
 
+    public enum _AtmelType
+    {
+        ATMEL_ICE = 0,
+        ATMEL_MK2 = 1,
+    };
+
     public enum _ProcessStages
     {
         STAGE_1_BURN_EZR,
@@ -104,12 +110,15 @@ namespace LoggerConfig
         _ModemType   m_nModemModel;
         _ProcessStages m_curStage;
         _TASK       m_curTask;
+        _AtmelType m_atmelBrnType;
+        string m_sBurnType;
 
         public Form1()
         {
             InitializeComponent();
             m_bConnected2Logger = false;
             m_nModemModel = _ModemType.MODEM_NONE;
+            m_atmelBrnType = _AtmelType.ATMEL_ICE;
         }
 
         private void LoadPorts()
@@ -211,6 +220,7 @@ namespace LoggerConfig
             LoadAPN();
             LoadVersions();
             StageLbl.Text = "";
+            m_sBurnType = "atmelice";
         }
 
         delegate void AddTextCallback(RichTextBox c, string text);
@@ -688,19 +698,20 @@ namespace LoggerConfig
                 p.EnableRaisingEvents = true;
 
                 AddText(richTextBox1, "Erase:");
-                if (RunProcess(p, "-t atmelice -i isp -d atmega644pa chiperase") == 0) //avrispmk2
+                //sCommand = string.Format("-t %s -i isp -d atmega644pa chiperase", m_sBurnType);
+                if (RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa chiperase", m_sBurnType)) == 0) //avrispmk2
                 {
                     AddText(richTextBox1, "Program Fuse:");
-                    if (RunProcess(p, "-t atmelice -i isp -d atmega644pa -cl 125khz write -fs --values EFD8FF --verify") == 0) //avrispmk2
+                    if (RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa -cl 125khz write -fs --values EFD8FF --verify", m_sBurnType)) == 0) //avrispmk2
                     {
                         AddText(richTextBox1, "Program Bootloader:");
-                        if (RunProcess(p, string.Format("-t atmelice -i isp -d atmega644pa -cl 125khz program -fl -f {0} --format elf --verify ", files2Burn[(int)_FileType.TYPE_ATMEL_BL])) == 0)
+                        if (RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa -cl 125khz program -fl -f {1} --format elf --verify ", m_sBurnType, files2Burn[(int)_FileType.TYPE_ATMEL_BL])) == 0)
                         {
                             AddText(richTextBox1, "Program Flash:");
-                            if (RunProcess(p, string.Format("-t atmelice -i isp -d atmega644pa -cl 125khz program -fl -f {0} --format bin --verify ", files2Burn[(int)_FileType.TYPE_ATMEL_APP])) == 0)
+                            if (RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa -cl 125khz program -fl -f {1} --format bin --verify ", m_sBurnType, files2Burn[(int)_FileType.TYPE_ATMEL_APP])) == 0)
                             {
                                 AddText(richTextBox1, "Program EEprom:");
-                                int b = RunProcess(p, string.Format("-t atmelice -i isp -d atmega644pa -cl 125khz program -ee -f {0} --format hex --verify", files2Burn[(int)_FileType.TYPE_ATMEL_EEP]));
+                                int b = RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa -cl 125khz program -ee -f {1} --format hex --verify", m_sBurnType, files2Burn[(int)_FileType.TYPE_ATMEL_EEP]));
                                 if (b != 0)
                                     m_nError = 13;
                                 return b;
@@ -913,6 +924,7 @@ namespace LoggerConfig
 //                AddText(richTextBox2, "Got data");
                 if (l > 20)
                     return;
+                EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
                 EzrPort.Read(buf, 0, l);
                 for (int i = 0; i < l; i++)
                         s += Convert.ToChar(buf[i]);
@@ -921,6 +933,8 @@ namespace LoggerConfig
 
                  if (m_curStage == _ProcessStages.STAGE_5_TEST_RF)
                     m_testEzr = ParseData(ref buf);
+                 if (!m_testEzr)
+                    EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
             }
             catch (Exception ex)
             {
@@ -1018,6 +1032,7 @@ namespace LoggerConfig
         {
             EzrPort.DiscardInBuffer();
             EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            AddText(richTextBox2, "add data Received Event");
             m_testEzr = false;
             byte[] tmp = new byte[7] { 0x54, 0x45, 0x53 ,0x54, 0x45, 0x5a, 0x52 }; // "TESTEZR"
             //int n = 0;
@@ -1030,7 +1045,12 @@ namespace LoggerConfig
             }
             while ((!m_testEzr) && (m_nSeconds > 0));
             m_myTimer.Enabled = false;
-            EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            if (!m_testEzr)
+            {
+                //EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+                EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+                AddText(richTextBox2, "delete data Received Event");
+            }
             // to-do - put back
             if (!m_testEzr)
             {
@@ -1411,6 +1431,7 @@ namespace LoggerConfig
             {
                 SendLoggerInfo();
                 Print();
+                SaveData2File();
                 m_curStage++;
                 m_curTask = _TASK.TASK_DO_SOMETHING;
             }
@@ -1553,18 +1574,34 @@ namespace LoggerConfig
             return b;
         }
 
+        void SaveData2File()
+        {
+            try
+            {
+                string fileName = string.Format(@"C:\phytech\Loggers_{0}.txt", m_sID);
+                string line = string.Format("{0}/{1}/{2}: Logger ID: {3}  ICCID: {4}", DateTime.Now.Day, DateTime.Now.Month, DateTime.Now.Year, m_sID, m_strICCID);
+                StreamWriter tw = new StreamWriter(fileName, true);
+                tw.WriteLine(line);
+                tw.Close();
+            }
+            catch (Exception e)
+            { 
+                AddText(richTextBox1, "Save Data 2 file failed. Exception: " + e.Message);
+            }
+       }
+
         private void button2_Click(object sender, EventArgs e)
         {
             //Talk2Logger(Convert.ToByte(textID.Text), 0);
-            /*m_nSeconds = 60;
+            m_nSeconds = 60;
             SetTimer(1000);
             EzrPort.DiscardInBuffer();
             m_curStage = _ProcessStages.STAGE_5_TEST_RF;
             Thread thRF = new Thread(new ThreadStart(TestRf));
-            thRF.Start();*/
+            thRF.Start();
             //GenerateID();
-            new Print("123456", m_nModemModel.ToString(), LoggerConfig.Properties.Resources.BnWLogo);
-            AddText(richTextBox1, "Sticker Printed");
+            //new Print("123456", m_nModemModel.ToString(), LoggerConfig.Properties.Resources.BnWLogo);
+            //AddText(richTextBox1, "Sticker Printed");
         }
 
         private void showLogToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1609,6 +1646,19 @@ namespace LoggerConfig
             bool b = dontGenerateNewToolStripMenuItem.Checked;
             labelID.Visible = b;
             textBoxID.Visible = b;
+        }
+
+        private void amelBurnerTypeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AtmelBrnType Tmpform = new AtmelBrnType((int)m_atmelBrnType);
+            if (Tmpform.ShowDialog() == DialogResult.OK)
+            {
+                m_atmelBrnType = (_AtmelType)Tmpform.GetAtmelType();
+                if (m_atmelBrnType == _AtmelType.ATMEL_ICE)
+                    m_sBurnType = "atmelice";
+                if (m_atmelBrnType == _AtmelType.ATMEL_MK2)
+                    m_sBurnType = "avrispmk2";
+            }
         }
     }
 }

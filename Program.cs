@@ -43,4 +43,13 @@ namespace LoggerConfig
  *              1.0.0.3
  * 24/09/2019   print on sticker the modem type.
  *              1.0.0.4
+ * 27/10/2019   EzrPort_DataReceived - while parsing data received - remove DataReceived event.
+ * 29/10/2019   add option to select the atmel burn unit type. ICE or MK2.
+ *              1.0.0.5
+ * 06/11/2019   print to daily file every new logger ID + ICCID
+ *              1.0.0.6
+ * 14/11/2019   1. add try+catch to the saving in file (version 1.0.0.6)
+ *              2. set default value to var of atmel burner type m_sBurnType - "atmelice"
+ *              1.0.0.7
+ *              
   */

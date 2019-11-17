@@ -54,6 +54,7 @@
             this.filesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.iDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dontGenerateNewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.amelBurnerTypeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.percentageLbl = new System.Windows.Forms.Label();
             this.pictureOK6 = new System.Windows.Forms.PictureBox();
             this.pictureOK3 = new System.Windows.Forms.PictureBox();
@@ -172,7 +173,6 @@
             this.button2.TabIndex = 10;
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.Visible = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // richTextBox2
@@ -264,18 +264,26 @@
             // iDToolStripMenuItem
             // 
             this.iDToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.dontGenerateNewToolStripMenuItem});
+            this.dontGenerateNewToolStripMenuItem,
+            this.amelBurnerTypeToolStripMenuItem});
             this.iDToolStripMenuItem.Name = "iDToolStripMenuItem";
-            this.iDToolStripMenuItem.Size = new System.Drawing.Size(30, 20);
-            this.iDToolStripMenuItem.Text = "ID";
+            this.iDToolStripMenuItem.Size = new System.Drawing.Size(72, 20);
+            this.iDToolStripMenuItem.Text = "Operation";
             // 
             // dontGenerateNewToolStripMenuItem
             // 
             this.dontGenerateNewToolStripMenuItem.CheckOnClick = true;
             this.dontGenerateNewToolStripMenuItem.Name = "dontGenerateNewToolStripMenuItem";
-            this.dontGenerateNewToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.dontGenerateNewToolStripMenuItem.Text = "Don\'t Generate New";
+            this.dontGenerateNewToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.dontGenerateNewToolStripMenuItem.Text = "Don\'t Generate New ID";
             this.dontGenerateNewToolStripMenuItem.Click += new System.EventHandler(this.dontGenerateNewToolStripMenuItem_Click);
+            // 
+            // amelBurnerTypeToolStripMenuItem
+            // 
+            this.amelBurnerTypeToolStripMenuItem.Name = "amelBurnerTypeToolStripMenuItem";
+            this.amelBurnerTypeToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.amelBurnerTypeToolStripMenuItem.Text = "Amel Burner Type";
+            this.amelBurnerTypeToolStripMenuItem.Click += new System.EventHandler(this.amelBurnerTypeToolStripMenuItem_Click);
             // 
             // percentageLbl
             // 
@@ -467,6 +475,7 @@
         private System.Windows.Forms.ToolStripMenuItem dontGenerateNewToolStripMenuItem;
         private System.Windows.Forms.TextBox textBoxID;
         private System.Windows.Forms.Label labelID;
+        private System.Windows.Forms.ToolStripMenuItem amelBurnerTypeToolStripMenuItem;
     }
 }
 
