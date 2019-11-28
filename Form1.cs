@@ -118,7 +118,7 @@ namespace LoggerConfig
             InitializeComponent();
             m_bConnected2Logger = false;
             m_nModemModel = _ModemType.MODEM_NONE;
-            m_atmelBrnType = _AtmelType.ATMEL_ICE;
+            m_atmelBrnType = _AtmelType.ATMEL_ICE;           
         }
 
         private void LoadPorts()
@@ -714,6 +714,15 @@ namespace LoggerConfig
                                 int b = RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa -cl 125khz program -ee -f {1} --format hex --verify", m_sBurnType, files2Burn[(int)_FileType.TYPE_ATMEL_EEP]));
                                 if (b != 0)
                                     m_nError = 13;
+                                else
+                                {
+                                    if (m_atmelBrnType == _AtmelType.ATMEL_ICE)
+                                    {
+                                        Thread.Sleep(250);
+                                        if (RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa -cl 125khz reset ", m_sBurnType)) == 0)
+                                            AddText(richTextBox1, "make reset");
+                                    }
+                                }
                                 return b;
                             }
                             else

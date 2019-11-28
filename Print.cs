@@ -128,8 +128,8 @@ public class Print
             // Print the document.
             bFirstSticker = true;
             pd.Print();
-            bFirstSticker = false;
-            pd.Print();
+            //bFirstSticker = false;
+            //pd.Print();
             //} 
             //finally 
             //{
