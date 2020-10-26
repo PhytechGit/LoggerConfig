@@ -112,10 +112,25 @@ namespace LoggerConfig
         _TASK       m_curTask;
         _AtmelType m_atmelBrnType;
         string m_sBurnType;
+        int m_mode;
 
         public Form1()
         {
             InitializeComponent();
+            m_mode = 0;
+            try
+            {
+                string[] args = Environment.GetCommandLineArgs();
+                if (args.Length > 1)
+                {
+                    if (args[1].Equals("STAGE"))
+                        m_mode = 1;                    
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
             m_bConnected2Logger = false;
             m_nModemModel = _ModemType.MODEM_NONE;
             m_atmelBrnType = _AtmelType.ATMEL_ICE;           
@@ -180,10 +195,15 @@ namespace LoggerConfig
         //get SW latest version from staging server
         private void LoadVersions()
         {
-            string uriAtmelStagingString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
-            string uriEZRStagingString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
-            //https://phytoweb-staging.herokuapp.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";
-            //string uriString = @"http://plantbeat.phytech.com/activeadmin/sensor_versions/latest_version?user_id=1091&api_token=FrAnazu5rt67";            
+            string uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+            string uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+
+            if (m_mode == 1)
+            {
+                uriAtmelServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+                uriEZRServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+            }
+
             try
             {
                 WebClient client = new WebClient();
@@ -193,10 +213,10 @@ namespace LoggerConfig
                 //if (DbgMode == 1)
                 //    s = client.DownloadString(uriStagingString);
                 //else
-                m_sAtmelOfficialVer = client.DownloadString(/*uriString*/uriAtmelStagingString);//  .UploadValues(uriString, myNameValueCollection);
-                m_sEZROfficialVer = client.DownloadString(/*uriString*/uriEZRStagingString);
+                m_sAtmelOfficialVer = client.DownloadString(/*uriString*/uriAtmelServerString);//  .UploadValues(uriString, myNameValueCollection);
+                m_sEZROfficialVer = client.DownloadString(/*uriString*/uriEZRServerString);
                 AddText(richTextBox1, "Atmel Official" + m_sAtmelOfficialVer);
-                AddText(richTextBox1, "EZR Official" + uriEZRStagingString);
+                AddText(richTextBox1, "EZR Official" + m_sEZROfficialVer);
                 //m_sSWVer = s;
                 //      txtOficialVer.Text = m_sSWVer;
             }
@@ -718,7 +738,7 @@ namespace LoggerConfig
                                 {
                                     if (m_atmelBrnType == _AtmelType.ATMEL_ICE)
                                     {
-                                        Thread.Sleep(250);
+                                        Thread.Sleep(10000);
                                         if (RunProcess(p, string.Format("-t {0} -i isp -d atmega644pa -cl 125khz reset ", m_sBurnType)) == 0)
                                             AddText(richTextBox1, "make reset");
                                     }
@@ -1413,7 +1433,7 @@ namespace LoggerConfig
             if (m_Param == 61)
                 return true;
             Thread.Sleep(500);
-            return m_bDataReceived;
+            return m_bDataRםeceived;
         }
 
         private byte[] StrtoBytes(string str, int len)
@@ -1512,6 +1532,7 @@ namespace LoggerConfig
                 return true;
             }
             bool b = false;
+            string reply = "";
 
             //            string uriString = "http://46.101.79.233:3001/activeadmin/sensors_allocations.json?user_id=1580&api_token=nz-nLBTpvQL4N-3GTZBz";
             string uriString = @"http://plantbeat.phytech.com/activeadmin/sensors_allocations.json?user_id=1091&api_token=FrAnazu5rt67";
@@ -1530,10 +1551,24 @@ namespace LoggerConfig
                 myNameValueCollection.Add("sensors_allocation[allocations_number]", "1");   
                 myNameValueCollection.Add("sensors_allocation[wireless]", "1");
                 myNameValueCollection.Add("commit", "Create Sensors allocation");
-
-                // 'The Upload(String,NameValueCollection)' implicitly method sets HTTP POST as the request method.             
-                byte[] responseArray = client.UploadValues(uriString, myNameValueCollection);
-                string reply = Encoding.UTF8.GetString(responseArray, 0, responseArray.Length);
+                int i = 0;
+                bool bOK = true;
+                do
+                {
+                    try
+                    {
+                        // 'The Upload(String,NameValueCollection)' implicitly method sets HTTP POST as the request method.             
+                        byte[] responseArray = client.UploadValues(uriString, myNameValueCollection);
+                        reply = Encoding.UTF8.GetString(responseArray, 0, responseArray.Length);
+                    }
+                    catch (WebException we)
+                    {
+                        AddText(richTextBox1, "GenerateID Error: GetString:" + we.Message);
+                        m_nError = 54;
+                        bOK = false;
+                    }
+                }
+                while ((bOK == false) && (i < 3));
                 // Upload the data.
                 //string[] separators = { ",", "[", "]" }; //, "?", ";", ":", " " };
                 //string[] IDs = reply.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -1601,6 +1636,7 @@ namespace LoggerConfig
 
         private void button2_Click(object sender, EventArgs e)
         {
+            GenerateID();
             //Talk2Logger(Convert.ToByte(textID.Text), 0);
             m_nSeconds = 60;
             SetTimer(1000);

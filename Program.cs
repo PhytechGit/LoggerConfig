@@ -12,7 +12,7 @@ namespace LoggerConfig
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -55,5 +55,9 @@ namespace LoggerConfig
  *              1.0.0.7
  * 28/11/2019   after burn atmel - make reset (only for ICE burner). need to be checked
  *          1.0.0.8
+ * 15/12/2019   If app got argument "STAGE" - should take apps versions from staging server, instead of production.
+ *              1.0.0.9
+ * 22/04/2020   GenerateID: try max 3 time to get ID from server. if failedafter 3 times - quit.
+ *              1.0.0.10 
  *              
   */
