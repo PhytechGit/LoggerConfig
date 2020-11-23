@@ -51,6 +51,12 @@ namespace LoggerConfig
         ATMEL_MK2 = 1,
     };
 
+    public enum _ConfigType
+    {
+        CONFIG_NORMAL = 0,
+        CONFIG_GATEWAY = 1,
+    };
+
     public enum _ProcessStages
     {
         STAGE_1_BURN_EZR,
@@ -61,7 +67,8 @@ namespace LoggerConfig
         STAGE_6_SERVER_CONNECT,
         STAGE_TEST_RESET_BTN,
         STAGE_7_SET_ID,
-        STAGE_8_END,        
+        STAGE_8_END,
+        STAGE_PUMP_PWR,
     };
 
     public enum _TASK
@@ -75,7 +82,7 @@ namespace LoggerConfig
         string[]    files2Burn;
         bool        m_bStopProcess;
         string      m_sFactory;
-        bool        m_testEzr;
+        bool        m_testEzr, m_bTestPump;
         private static System.Timers.Timer m_myTimer;
         byte[]      m_buffer = new byte[1000];
         byte[]      m_byteID = new byte[4] { 0, 0, 0, 0 };
@@ -113,6 +120,7 @@ namespace LoggerConfig
         _AtmelType m_atmelBrnType;
         string m_sBurnType;
         int m_mode;
+        _ConfigType m_configType;
 
         public Form1()
         {
@@ -133,7 +141,8 @@ namespace LoggerConfig
             }
             m_bConnected2Logger = false;
             m_nModemModel = _ModemType.MODEM_NONE;
-            m_atmelBrnType = _AtmelType.ATMEL_ICE;           
+            m_atmelBrnType = _AtmelType.ATMEL_ICE;
+            m_configType = _ConfigType.CONFIG_NORMAL;
         }
 
         private void LoadPorts()
@@ -157,7 +166,11 @@ namespace LoggerConfig
 
         private void LoadFilesName()
         {
-            StreamReader sr = File.OpenText("FilesDef.txt");
+            StreamReader sr;
+            if  (m_configType == _ConfigType.CONFIG_NORMAL)
+                sr = File.OpenText("FilesDef.txt");
+            else
+                sr = File.OpenText("GWFilesDef.txt");
             //            eFileType = _FileType.TYPE_CNT;
             files2Burn = new string[(int)_FileType.TYPE_CNT];
             while (!sr.EndOfStream)
@@ -195,14 +208,28 @@ namespace LoggerConfig
         //get SW latest version from staging server
         private void LoadVersions()
         {
-            string uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
-            string uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+            string uriAtmelServerString;
+            string uriEZRServerString;
 
-            if (m_mode == 1)
+            if (m_configType == _ConfigType.CONFIG_NORMAL)
             {
-                uriAtmelServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
-                uriEZRServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+                if (m_mode == 1)
+                {
+                    uriAtmelServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+                    uriEZRServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+                }
+                else
+                {
+                    uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+                    uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+                }
             }
+            else
+            {
+                uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=GATEWAY&api_token=FrAnazu5rt67";
+                uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR_NG&api_token=FrAnazu5rt67";
+            }
+            
 
             try
             {
@@ -240,6 +267,7 @@ namespace LoggerConfig
             LoadAPN();
             LoadVersions();
             StageLbl.Text = "";
+            PumpLbl.Text = "";     
             m_sBurnType = "atmelice";
         }
 
@@ -386,6 +414,7 @@ namespace LoggerConfig
             m_sID = "";
             m_sAPN = "";
             StageLbl.Text = "";
+            PumpLbl.Text = "";
             m_curTask = _TASK.TASK_DO_SOMETHING;
             // to do - add init array:
             //m_byteID[0] = 0;
@@ -400,6 +429,7 @@ namespace LoggerConfig
             pictureOK5.Visible = false;
             pictureOK6.Visible = false;
             pictureOK7.Visible = false;
+            pictureOK8.Visible = false;
         }
 
         private void ShowOKIcon(PictureBox pb, bool ok)
@@ -505,6 +535,8 @@ namespace LoggerConfig
                                 break;
                             case _ProcessStages.STAGE_5_TEST_RF:
                                 ShowOKIcon(pictureOK3, true);
+                                if (m_configType == _ConfigType.CONFIG_GATEWAY)
+                                    ShowOKIcon(pictureOK8, true);
                                 AddLine(StageLbl, "Testing RF", true);
                                 //AddRemoveEvent('-');
 
@@ -563,6 +595,15 @@ namespace LoggerConfig
                                     ShowOKIcon(pictureOK7, true);
                                 bOk = true;
                                 m_bStopProcess = true;
+                                break;
+                            case _ProcessStages.STAGE_PUMP_PWR:
+                                PumpLbl.Text = "Test Pump Power";
+                                AddText(richTextBox2, "Test Pump");
+                                m_curTask = _TASK.TASK_WAIT;
+                                m_nSeconds = 10;
+                                SetTimer(1000);
+                                Thread thPump = new Thread(new ThreadStart(TestPump));
+                                thPump.Start();
                                 break;
                         }
                     }
@@ -630,6 +671,9 @@ namespace LoggerConfig
                             else
                                 ShowOKIcon(pictureOK7, false);
                             sErrorText = "Failed setting the ID";
+                            break;
+                        case _ProcessStages.STAGE_PUMP_PWR:
+                            ShowOKIcon(pictureOK8, false);
                             break;
                         default:
                             sErrorText = "Process failed...";
@@ -925,11 +969,11 @@ namespace LoggerConfig
             }
             else
                     if (m_curStage == _ProcessStages.STAGE_6_SERVER_CONNECT)
-                if (CheckBuf(length, CONNECT, 7))
-                {
-                    //m_curStage = _ProcessStages.STATUS_SECOND_CONNECT;
-                    m_bCnctOK = true;
-                }
+                        if (CheckBuf(length, CONNECT, 7))
+                        {
+                            //m_curStage = _ProcessStages.STATUS_SECOND_CONNECT;
+                            m_bCnctOK = true;
+                        }
         }
 
         private void openEzrComBtn_Click(object sender, EventArgs e)
@@ -960,10 +1004,26 @@ namespace LoggerConfig
 
                  AddText(richTextBox2, s);
 
-                 if (m_curStage == _ProcessStages.STAGE_5_TEST_RF)
+                if (m_curStage == _ProcessStages.STAGE_5_TEST_RF)
+                {
                     m_testEzr = ParseData(ref buf);
-                 if (!m_testEzr)
-                    EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+                    if (!m_testEzr)
+                        EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+                }
+                else
+                {
+                    if (m_curStage == _ProcessStages.STAGE_PUMP_PWR)
+                    {
+                        if ((buf[0] == 'P') && (buf[1] == 'W') && (buf[2] == 'R') && (buf[3] == 'O') && (buf[4] == 'K'))
+                        {
+                            m_bTestPump = true;
+                            int value = BitConverter.ToInt16(buf, 5);
+                            AddText(richTextBox2, "Value = " + value.ToString());
+                        }
+                        else
+                            EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1091,6 +1151,37 @@ namespace LoggerConfig
             m_curTask = _TASK.TASK_DO_SOMETHING;
         }
 
+        private void TestPump()
+        {
+            m_bTestPump = false;
+            EzrPort.DiscardInBuffer();
+            EzrPort.DataReceived += new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            AddText(richTextBox2, "TestPump");
+            // send logger to operate pump
+            Talk2Logger(68, 1);
+            // wait for ack 
+            while ((!m_bTestPump) && (m_nSeconds > 0));
+            m_myTimer.Enabled = false;
+            if (m_bTestPump)
+            {
+                AddText(richTextBox2, "Pump Power is OK"); 
+                if (m_bCanConnect)              
+                    Talk2Logger(67, 1);     // send connecting request ot logger
+                m_bConnected2Logger = false;
+                m_curStage = _ProcessStages.STAGE_5_TEST_RF;    // STAGE_4_FIRST_CONNECT;
+                m_curTask = _TASK.TASK_DO_SOMETHING;                
+            }
+            else
+            {
+                AddText(richTextBox2, "Pump Power not OK");
+                m_nError = 60;
+                m_bStopProcess = true;
+                return;
+            }
+            EzrPort.DataReceived -= new SerialDataReceivedEventHandler(EzrPort_DataReceived);
+            AddText(richTextBox2, "delete data Received Event");
+        }
+
         private void SetTimer(double ms)
         {
             // Create a timer with a two second interval.
@@ -1184,14 +1275,24 @@ namespace LoggerConfig
                         {
                             if (m_bReqOK)
                             {
-                                if (/*m_nModemModel != _ModemType.MODEM_SVL*/m_bCanConnect)
+                                if (m_configType == _ConfigType.CONFIG_GATEWAY)
                                 {
-                                    // send to logger Task of connecting to server 
-                                    Talk2Logger(67, 1);
-                                    m_bConnected2Logger = false;
+                                    m_curStage = _ProcessStages.STAGE_PUMP_PWR;
+                                    m_curTask = _TASK.TASK_DO_SOMETHING;
+                                    //Talk2Logger(68, 0);
+                                    return;
                                 }
-                                m_curTask = _TASK.TASK_DO_SOMETHING;
-                                m_curStage++;
+                                else
+                                { 
+                                    if (/*m_nModemModel != _ModemType.MODEM_SVL*/m_bCanConnect)
+                                    {
+                                        // send to logger Task of connecting to server 
+                                        Talk2Logger(67, 1);
+                                        m_bConnected2Logger = false;
+                                    }
+                                    m_curTask = _TASK.TASK_DO_SOMETHING;
+                                    m_curStage++;
+                                }
                             }
                         }
                         else
@@ -1422,18 +1523,17 @@ namespace LoggerConfig
             {
                 m_bDataReceived = false;
                 AtmelPort.Write(m_buffer, 0, n + 1);
-                AddText(richTextBox1, Buff2Log(false, n + 1));
-                
+                AddText(richTextBox1, Buff2Log(false, n + 1));                
             }
             catch (Exception x)
             {
                 AddText(richTextBox1, "Exception: " + x.Message);
             }
             //for disconnecting - no need to wait for answer
-            if (m_Param == 61)
+            if ((m_Param == 61) || (m_Param == 68))
                 return true;
             Thread.Sleep(500);
-            return m_bDataRםeceived;
+            return m_bDataReceived;
         }
 
         private byte[] StrtoBytes(string str, int len)
@@ -1636,6 +1736,7 @@ namespace LoggerConfig
 
         private void button2_Click(object sender, EventArgs e)
         {
+            /*
             GenerateID();
             //Talk2Logger(Convert.ToByte(textID.Text), 0);
             m_nSeconds = 60;
@@ -1647,6 +1748,8 @@ namespace LoggerConfig
             //GenerateID();
             //new Print("123456", m_nModemModel.ToString(), LoggerConfig.Properties.Resources.BnWLogo);
             //AddText(richTextBox1, "Sticker Printed");
+            */
+
         }
 
         private void showLogToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1704,6 +1807,16 @@ namespace LoggerConfig
                 if (m_atmelBrnType == _AtmelType.ATMEL_MK2)
                     m_sBurnType = "avrispmk2";
             }
+        }
+
+        private void valvesGateWayToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            if (valvesGateWayToolStripMenuItem.Checked == true)
+                m_configType = _ConfigType.CONFIG_GATEWAY;
+            else
+                m_configType = _ConfigType.CONFIG_NORMAL;
+            LoadVersions();
+            LoadFilesName();
         }
     }
 }

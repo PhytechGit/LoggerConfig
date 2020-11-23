@@ -59,5 +59,11 @@ namespace LoggerConfig
  *              1.0.0.9
  * 22/04/2020   GenerateID: try max 3 time to get ID from server. if failedafter 3 times - quit.
  *              1.0.0.10 
+ * 26/10/2020   for valve gateway:
+ *              add menu item - Config valve gateway - whenever it checked the config type changed and the program
+ *              reload the Versions and files fit to this type (valvesGateWayToolStripMenuItem_CheckedChanged). 
+ * 22/11/2020   for gateway - after configure properties - ask logger to operate pump in order to test it.
+ *              if got result ok - continue to rf test and all other...
+ *              1.0.1.0 
  *              
   */
