@@ -55,28 +55,28 @@
             this.iDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dontGenerateNewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.amelBurnerTypeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.valvesGateWayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.percentageLbl = new System.Windows.Forms.Label();
+            this.textBoxID = new System.Windows.Forms.TextBox();
+            this.labelID = new System.Windows.Forms.Label();
+            this.PumpLbl = new System.Windows.Forms.Label();
+            this.pictureOK8 = new System.Windows.Forms.PictureBox();
+            this.pictureOK7 = new System.Windows.Forms.PictureBox();
             this.pictureOK6 = new System.Windows.Forms.PictureBox();
             this.pictureOK3 = new System.Windows.Forms.PictureBox();
             this.pictureOK4 = new System.Windows.Forms.PictureBox();
             this.pictureOK5 = new System.Windows.Forms.PictureBox();
             this.pictureOK2 = new System.Windows.Forms.PictureBox();
             this.pictureOK1 = new System.Windows.Forms.PictureBox();
-            this.pictureOK7 = new System.Windows.Forms.PictureBox();
-            this.textBoxID = new System.Windows.Forms.TextBox();
-            this.labelID = new System.Windows.Forms.Label();
-            this.PumpLbl = new System.Windows.Forms.Label();
-            this.pictureOK8 = new System.Windows.Forms.PictureBox();
+            this.configurationTypeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK8)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK7)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK6)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK7)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK8)).BeginInit();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -271,7 +271,7 @@
             this.iDToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.dontGenerateNewToolStripMenuItem,
             this.amelBurnerTypeToolStripMenuItem,
-            this.valvesGateWayToolStripMenuItem});
+            this.configurationTypeToolStripMenuItem});
             this.iDToolStripMenuItem.Name = "iDToolStripMenuItem";
             this.iDToolStripMenuItem.Size = new System.Drawing.Size(72, 20);
             this.iDToolStripMenuItem.Text = "Operation";
@@ -291,14 +291,6 @@
             this.amelBurnerTypeToolStripMenuItem.Text = "Amel Burner Type";
             this.amelBurnerTypeToolStripMenuItem.Click += new System.EventHandler(this.amelBurnerTypeToolStripMenuItem_Click);
             // 
-            // valvesGateWayToolStripMenuItem
-            // 
-            this.valvesGateWayToolStripMenuItem.CheckOnClick = true;
-            this.valvesGateWayToolStripMenuItem.Name = "valvesGateWayToolStripMenuItem";
-            this.valvesGateWayToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-            this.valvesGateWayToolStripMenuItem.Text = "Valves GateWay";
-            this.valvesGateWayToolStripMenuItem.CheckedChanged += new System.EventHandler(this.valvesGateWayToolStripMenuItem_CheckedChanged);
-            // 
             // percentageLbl
             // 
             this.percentageLbl.AutoSize = true;
@@ -308,6 +300,56 @@
             this.percentageLbl.Size = new System.Drawing.Size(21, 13);
             this.percentageLbl.TabIndex = 16;
             this.percentageLbl.Text = "0%";
+            // 
+            // textBoxID
+            // 
+            this.textBoxID.Location = new System.Drawing.Point(111, 118);
+            this.textBoxID.Name = "textBoxID";
+            this.textBoxID.Size = new System.Drawing.Size(103, 20);
+            this.textBoxID.TabIndex = 24;
+            this.textBoxID.Visible = false;
+            // 
+            // labelID
+            // 
+            this.labelID.AutoSize = true;
+            this.labelID.Location = new System.Drawing.Point(11, 118);
+            this.labelID.Name = "labelID";
+            this.labelID.Size = new System.Drawing.Size(21, 13);
+            this.labelID.TabIndex = 25;
+            this.labelID.Text = "ID:";
+            this.labelID.Visible = false;
+            // 
+            // PumpLbl
+            // 
+            this.PumpLbl.AutoSize = true;
+            this.PumpLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
+            this.PumpLbl.Location = new System.Drawing.Point(663, 58);
+            this.PumpLbl.Name = "PumpLbl";
+            this.PumpLbl.Size = new System.Drawing.Size(18, 16);
+            this.PumpLbl.TabIndex = 26;
+            this.PumpLbl.Text = "Y";
+            // 
+            // pictureOK8
+            // 
+            this.pictureOK8.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK8.Image")));
+            this.pictureOK8.Location = new System.Drawing.Point(646, 58);
+            this.pictureOK8.Name = "pictureOK8";
+            this.pictureOK8.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK8.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK8.TabIndex = 27;
+            this.pictureOK8.TabStop = false;
+            this.pictureOK8.Visible = false;
+            // 
+            // pictureOK7
+            // 
+            this.pictureOK7.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK7.Image")));
+            this.pictureOK7.Location = new System.Drawing.Point(390, 126);
+            this.pictureOK7.Name = "pictureOK7";
+            this.pictureOK7.Size = new System.Drawing.Size(15, 15);
+            this.pictureOK7.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureOK7.TabIndex = 23;
+            this.pictureOK7.TabStop = false;
+            this.pictureOK7.Visible = false;
             // 
             // pictureOK6
             // 
@@ -375,55 +417,12 @@
             this.pictureOK1.TabStop = false;
             this.pictureOK1.Visible = false;
             // 
-            // pictureOK7
+            // configurationTypeToolStripMenuItem
             // 
-            this.pictureOK7.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK7.Image")));
-            this.pictureOK7.Location = new System.Drawing.Point(390, 126);
-            this.pictureOK7.Name = "pictureOK7";
-            this.pictureOK7.Size = new System.Drawing.Size(15, 15);
-            this.pictureOK7.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureOK7.TabIndex = 23;
-            this.pictureOK7.TabStop = false;
-            this.pictureOK7.Visible = false;
-            // 
-            // textBoxID
-            // 
-            this.textBoxID.Location = new System.Drawing.Point(111, 118);
-            this.textBoxID.Name = "textBoxID";
-            this.textBoxID.Size = new System.Drawing.Size(103, 20);
-            this.textBoxID.TabIndex = 24;
-            this.textBoxID.Visible = false;
-            // 
-            // labelID
-            // 
-            this.labelID.AutoSize = true;
-            this.labelID.Location = new System.Drawing.Point(11, 118);
-            this.labelID.Name = "labelID";
-            this.labelID.Size = new System.Drawing.Size(21, 13);
-            this.labelID.TabIndex = 25;
-            this.labelID.Text = "ID:";
-            this.labelID.Visible = false;
-            // 
-            // PumpLbl
-            // 
-            this.PumpLbl.AutoSize = true;
-            this.PumpLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
-            this.PumpLbl.Location = new System.Drawing.Point(663, 58);
-            this.PumpLbl.Name = "PumpLbl";
-            this.PumpLbl.Size = new System.Drawing.Size(18, 16);
-            this.PumpLbl.TabIndex = 26;
-            this.PumpLbl.Text = "Y";
-            // 
-            // pictureOK8
-            // 
-            this.pictureOK8.Image = ((System.Drawing.Image)(resources.GetObject("pictureOK8.Image")));
-            this.pictureOK8.Location = new System.Drawing.Point(646, 58);
-            this.pictureOK8.Name = "pictureOK8";
-            this.pictureOK8.Size = new System.Drawing.Size(15, 15);
-            this.pictureOK8.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureOK8.TabIndex = 27;
-            this.pictureOK8.TabStop = false;
-            this.pictureOK8.Visible = false;
+            this.configurationTypeToolStripMenuItem.Name = "configurationTypeToolStripMenuItem";
+            this.configurationTypeToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.configurationTypeToolStripMenuItem.Text = "Configuration Type";
+            this.configurationTypeToolStripMenuItem.Click += new System.EventHandler(this.configurationTypeToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -464,14 +463,14 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK8)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureOK7)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK6)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK4)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK5)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureOK1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK7)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureOK8)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -514,9 +513,9 @@
         private System.Windows.Forms.TextBox textBoxID;
         private System.Windows.Forms.Label labelID;
         private System.Windows.Forms.ToolStripMenuItem amelBurnerTypeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem valvesGateWayToolStripMenuItem;
         private System.Windows.Forms.Label PumpLbl;
         private System.Windows.Forms.PictureBox pictureOK8;
+        private System.Windows.Forms.ToolStripMenuItem configurationTypeToolStripMenuItem;
     }
 }
 

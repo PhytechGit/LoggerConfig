@@ -55,6 +55,7 @@ namespace LoggerConfig
     {
         CONFIG_NORMAL = 0,
         CONFIG_GATEWAY = 1,
+        CONFIG_NG = 2,
     };
 
     public enum _ProcessStages
@@ -125,6 +126,7 @@ namespace LoggerConfig
         public Form1()
         {
             InitializeComponent();
+
             m_mode = 0;
             try
             {
@@ -166,32 +168,54 @@ namespace LoggerConfig
 
         private void LoadFilesName()
         {
-            StreamReader sr;
-            if  (m_configType == _ConfigType.CONFIG_NORMAL)
-                sr = File.OpenText("FilesDef.txt");
-            else
-                sr = File.OpenText("GWFilesDef.txt");
-            //            eFileType = _FileType.TYPE_CNT;
-            files2Burn = new string[(int)_FileType.TYPE_CNT];
-            while (!sr.EndOfStream)
+            StreamReader sr = null;
+            try
             {
-                string line = sr.ReadLine();
-                string[] sarr = line.Split(',');
-                int i = Convert.ToInt16(sarr[0]);
-                files2Burn[i] = sarr[1];
+                switch (m_configType)
+                {
+                    case _ConfigType.CONFIG_NORMAL:
+                        sr = File.OpenText("FilesDef.txt");
+                        break;
+                    case _ConfigType.CONFIG_GATEWAY:
+                        sr = File.OpenText("GWFilesDef.txt");
+                        break;
+                    case _ConfigType.CONFIG_NG:
+                        sr = File.OpenText("NGFileDef.txt");
+                        break;
+                }
+                //            eFileType = _FileType.TYPE_CNT;
+                files2Burn = new string[(int)_FileType.TYPE_CNT];
+                while (!sr.EndOfStream)
+                {
+                    string line = sr.ReadLine();
+                    string[] sarr = line.Split(',');
+                    int i = Convert.ToInt16(sarr[0]);
+                    files2Burn[i] = sarr[1];
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
         private void LoadAPN()
         {
-            StreamReader sr = File.OpenText("ApnDef.txt");
-
-            APNArray = new List<APN_Types>();
-            while (!sr.EndOfStream)
+            try
             {
-                string line = sr.ReadLine();
-                string[] sarr = line.Split(',');
-                APNArray.Add(new APN_Types { m_mdmType = (_ModemType)Convert.ToInt16(sarr[0]), m_ICCID = sarr[1], m_APN = sarr[2], m_canConnect = Convert.ToInt16(sarr[3]) });
+                StreamReader sr = File.OpenText("ApnDef.txt");
+
+                APNArray = new List<APN_Types>();
+                while (!sr.EndOfStream)
+                {
+                    string line = sr.ReadLine();
+                    string[] sarr = line.Split(',');
+                    APNArray.Add(new APN_Types { m_mdmType = (_ModemType)Convert.ToInt16(sarr[0]), m_ICCID = sarr[1], m_APN = sarr[2], m_canConnect = Convert.ToInt16(sarr[3]) });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -208,27 +232,39 @@ namespace LoggerConfig
         //get SW latest version from staging server
         private void LoadVersions()
         {
-            string uriAtmelServerString;
-            string uriEZRServerString;
+            string uriAtmelServerString = "";
+            string uriEZRServerString = "";
 
-            if (m_configType == _ConfigType.CONFIG_NORMAL)
+            switch (m_configType)
             {
-                if (m_mode == 1)
-                {
-                    uriAtmelServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
-                    uriEZRServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
-                }
-                else
-                {
-                    uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
-                    uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
-                }
-            }
-            else
-            {
-                uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=GATEWAY&api_token=FrAnazu5rt67";
-                uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR_NG&api_token=FrAnazu5rt67";
-            }
+                //if (m_configType == _ConfigType.CONFIG_NORMAL)
+                case _ConfigType.CONFIG_NORMAL:
+                    {
+                        if (m_mode == 1)
+                        {
+                            uriAtmelServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+                            uriEZRServerString = @"https://phytoweb-staging.herokuapp.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+                        }
+                        else
+                        {
+                            uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER&api_token=FrAnazu5rt67";
+                            uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR&api_token=FrAnazu5rt67";
+                        }
+                        break;
+                    }
+
+                case _ConfigType.CONFIG_GATEWAY:
+                    //            else
+                    {
+                        uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=GATEWAY&api_token=FrAnazu5rt67";
+                        uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR_4_GW&api_token=FrAnazu5rt67";
+                        break;
+                    }
+                case _ConfigType.CONFIG_NG:
+                    uriAtmelServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=LOGGER_NG&api_token=FrAnazu5rt67";
+                    uriEZRServerString = @"http://plantbeat.phytech.com/activeadmin/hardware_versions/latest_version?hardware_type=EZR_NG&api_token=FrAnazu5rt67";
+                    break;
+            }//switch
             
 
             try
@@ -242,8 +278,8 @@ namespace LoggerConfig
                 //else
                 m_sAtmelOfficialVer = client.DownloadString(/*uriString*/uriAtmelServerString);//  .UploadValues(uriString, myNameValueCollection);
                 m_sEZROfficialVer = client.DownloadString(/*uriString*/uriEZRServerString);
-                AddText(richTextBox1, "Atmel Official" + m_sAtmelOfficialVer);
-                AddText(richTextBox1, "EZR Official" + m_sEZROfficialVer);
+                AddText(richTextBox1, "Atmel Official:  " + m_sAtmelOfficialVer);
+                AddText(richTextBox1, "EZR Official:  " + m_sEZROfficialVer);
                 //m_sSWVer = s;
                 //      txtOficialVer.Text = m_sSWVer;
             }
@@ -259,6 +295,7 @@ namespace LoggerConfig
             LoadPorts();
             LoadFilesName();
             LoadFactory();
+            
             if (m_sFactory == "")
             {
                 MessageBox.Show("Undefined Producer!\r\nClosing Application...");
@@ -269,6 +306,11 @@ namespace LoggerConfig
             StageLbl.Text = "";
             PumpLbl.Text = "";     
             m_sBurnType = "atmelice";
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            string version = fvi.FileVersion;
+
+            this.Text += " " + version;
         }
 
         delegate void AddTextCallback(RichTextBox c, string text);
@@ -288,6 +330,8 @@ namespace LoggerConfig
                 }
                 else
                 {
+                    //string s = DateTime.Now.ToString()+": ";
+                    //c.AppendText(s);
                     c.AppendText(text);
                     c.AppendText("\r\n");
                     //c.Text += text;
@@ -486,6 +530,13 @@ namespace LoggerConfig
                     if (m_curTask == _TASK.TASK_WAIT)
                         continue;
 
+                    if (m_configType == _ConfigType.CONFIG_NORMAL) 
+                        progressBar1.Maximum = 11;
+                    else
+                        if (m_configType == _ConfigType.CONFIG_NG)
+                            progressBar1.Maximum = 10;
+                        else
+                            progressBar1.Maximum = 12;
                     if (m_curTask == _TASK.TASK_DO_SOMETHING)
                     {
                         progressBar1.Value++;
@@ -547,7 +598,10 @@ namespace LoggerConfig
                                 thRF.Start();
                                 break;
                             case _ProcessStages.STAGE_6_SERVER_CONNECT:
-                                ShowOKIcon(pictureOK4, true);
+                                if (m_configType != _ConfigType.CONFIG_NG)
+                                    ShowOKIcon(pictureOK4, true);
+                                else
+                                    ShowOKIcon(pictureOK3, true);
                                 //AddRemoveEvent('+'); //after close in prev stage
                                 if (/*m_nModemModel == _ModemType.MODEM_SVL*/!m_bCanConnect)
                                 {
@@ -566,7 +620,7 @@ namespace LoggerConfig
                                 thWait2.Start();
                                 break;
                             case _ProcessStages.STAGE_TEST_RESET_BTN:
-                                if (m_nModemModel == _ModemType.MODEM_GE)
+                                if (m_bCanConnect/*m_nModemModel == _ModemType.MODEM_GE*/)
                                 {
                                     ShowOKIcon(pictureOK5, true);
                                 }
@@ -1062,6 +1116,7 @@ namespace LoggerConfig
                 AddText(richTextBox2, S);
                 m_sEzrVer = Convert.ToChar(buf[7]) + "." + Convert.ToInt16(buf[8]) + "." + Convert.ToInt16(buf[9]) + "." + Convert.ToInt16(buf[10]);
                 S = "\r\nReceiver version: " + m_sEzrVer;
+                AddText(richTextBox2, S);
                 if (m_sEZROfficialVer != m_sEzrVer)
                 {
                     AddText(richTextBox2, "EZR wrong version");
@@ -1069,7 +1124,6 @@ namespace LoggerConfig
                 }
 
                 //S += "\r\n";
-                AddText(richTextBox2, S);
                 if ((n1 < -7) || (n2 < -7))
                 {
                     AddText(richTextBox2, "Too low...");
@@ -1292,6 +1346,11 @@ namespace LoggerConfig
                                     }
                                     m_curTask = _TASK.TASK_DO_SOMETHING;
                                     m_curStage++;
+                                    if (m_configType == _ConfigType.CONFIG_NG)
+                                    {
+                                        AddLine(StageLbl, "Skip Radio Test", true);                                        
+                                        m_curStage++;
+                                    }
                                 }
                             }
                         }
@@ -1564,7 +1623,8 @@ namespace LoggerConfig
                 m_curStage++;
                 m_curTask = _TASK.TASK_DO_SOMETHING;
             }
-            m_bStopProcess = true;
+            else
+                m_bStopProcess = true;
         }
 
         public void SendLoggerInfo()
@@ -1582,8 +1642,22 @@ namespace LoggerConfig
             * */
             string strAddress = String.Format(@"http://plantbeat.phytech.com/activeadmin/sensors_allocations/{0}.json?user_id=1091&api_token=FrAnazu5rt67", m_nAllocID);
             String strLine;// = "authtoken=4b8873e7a46d5cf77a027bda4feb3fe4&scope=crmapi&wfTrigger=true&xmlData=<Products><row no=\"1\">";
+            string sHwType = "";
+            switch (m_configType)
+            {
+                case _ConfigType.CONFIG_NORMAL:
+                sHwType = "LOGGER";//"RemoteLogger";
+                    break;
+                case _ConfigType.CONFIG_GATEWAY:
+                sHwType = "GATEWAY";
+                    break;
+                case _ConfigType.CONFIG_NG:
+                    sHwType = "LOGGER_NG";
+                    break;
+            }
             strLine = String.Format("&factory={0}&worker_identifier={1}&software_version={2}&hardware_version={3}", m_sFactory, m_nModemModel.ToString(), m_sAtmelVer, m_sEzrVer);
-            strLine += String.Format("&battery_value={0}&hardware_type=RemoteLogger&sensor_type={1}&measuring_value={2}", m_sBtr, (int)m_nModemModel, m_strICCID);
+            strLine += String.Format("&battery_value={0}&hardware_type={1}&sensor_type={2}&measuring_value={3}", m_sBtr, sHwType, (int)m_nModemModel, m_strICCID);
+
             //strLine += String.Format("rssi_value={3}", textPin.Text);
 
             AddText(richTextBox1, "Sending Logger parameter to server...");
@@ -1620,7 +1694,10 @@ namespace LoggerConfig
 
         private void Print(/*object sender, EventArgs e*/)
         {
-            new Print(m_sID, m_nModemModel.ToString(), LoggerConfig.Properties.Resources.BnWLogo);
+            string sMdm = m_nModemModel.ToString();
+            if (m_configType == _ConfigType.CONFIG_NG)
+                sMdm += "  NG";
+            new Print(m_sID, sMdm, LoggerConfig.Properties.Resources.BnWLogo);
             AddText(richTextBox1, "Sticker Printed");
         }
 
@@ -1667,8 +1744,14 @@ namespace LoggerConfig
                         m_nError = 54;
                         bOK = false;
                     }
+                    i++;
                 }
                 while ((bOK == false) && (i < 3));
+                if (bOK == false)
+                {
+                    m_nError = 53;
+                    return false;
+                }
                 // Upload the data.
                 //string[] separators = { ",", "[", "]" }; //, "?", ";", ":", " " };
                 //string[] IDs = reply.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -1809,14 +1892,17 @@ namespace LoggerConfig
             }
         }
 
-        private void valvesGateWayToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+
+        private void configurationTypeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (valvesGateWayToolStripMenuItem.Checked == true)
-                m_configType = _ConfigType.CONFIG_GATEWAY;
-            else
-                m_configType = _ConfigType.CONFIG_NORMAL;
-            LoadVersions();
-            LoadFilesName();
+            SelectConfigForm selCnfForm = new SelectConfigForm(m_configType);
+            DialogResult dr = selCnfForm.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                m_configType = selCnfForm.m_newConfig;
+                LoadVersions();
+                LoadFilesName();
+            }
         }
     }
 }

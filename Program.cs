@@ -65,5 +65,11 @@ namespace LoggerConfig
  * 22/11/2020   for gateway - after configure properties - ask logger to operate pump in order to test it.
  *              if got result ok - continue to rf test and all other...
  *              1.0.1.0 
+ * 03/12/2020   fix bug of not switching on green light for connecting of verizon
+ * 16/06/2021   add option to burn NG loggers- add in menu "Configuration Type" option witch openes selection dialog.
+ *              after selecting type, app loads files and versions from server and start regular process.  meanwhile for NG
+ *              it skips the radio test because there is no test box with NG rf rate (2400).
+ *              1.0.2.0
+ * 
  *              
   */
